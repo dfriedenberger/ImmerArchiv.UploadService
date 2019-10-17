@@ -1,15 +1,8 @@
 package de.immerarchiv.job.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
@@ -21,7 +14,6 @@ import de.immerarchiv.util.interfaces.BagItCache;
 
 public class BagItScanJob implements Job {
 
-	private final static Logger logger = LogManager.getLogger(BagItScanJob.class);
 	
 	
 	private final RepositoryService repositoryService;
@@ -72,4 +64,11 @@ public class BagItScanJob implements Job {
 		return clazz.cast(fileInfoList);
 	}
 
+	@Override
+	public String toString() {
+		return "BagItScanJob [bagitQueue=" + bagitQueue.size() + ", fileInfoList="
+				+ fileInfoList.size() + "]";
+	}
+
+	
 }

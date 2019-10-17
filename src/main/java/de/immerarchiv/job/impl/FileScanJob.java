@@ -5,9 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.FileStateMap;
 import de.immerarchiv.util.interfaces.MD5Cache;
@@ -15,7 +12,6 @@ import de.immerarchiv.util.interfaces.MD5Service;
 
 public class FileScanJob implements Job {
 
-	private final static Logger logger = LogManager.getLogger(FileScanJob.class);
 
 	private final MD5Service md5service;
 	private final MD5Cache md5cache;

@@ -8,9 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
 import de.immerarchiv.job.model.BagItList;
@@ -20,7 +17,6 @@ import de.immerarchiv.repository.model.MetaDataKeys;
 
 public class RepositoryScanJob implements Job {
 
-	private final static Logger logger = LogManager.getLogger(RepositoryScanJob.class);
 
 	private final BagItList bagitList = new BagItList();
 	private long bagitCnt = -1;
@@ -61,6 +57,12 @@ public class RepositoryScanJob implements Job {
 		bagitList.addAll(bagits);	
 				
 		return bagitList.size() < bagitCnt;
+	}
+
+	@Override
+	public String toString() {
+		return "RepositoryScanJob [bagitList=" + bagitList.size() + ", bagitCnt="
+				+ bagitCnt + ", repositoryId=" + repositoryId + "]";
 	}
 
 	public BagIt toBagIt(Entry<String,MetaDataList> e)
