@@ -38,23 +38,30 @@ public class FolderScanJob implements Job {
 		if(!folder.isDirectory())
 			throw new IOException(folder + " has to be a folder");
 
-		for(File file : folder.listFiles())
+		File[] folders = folder.listFiles();
+		if(folders == null)
 		{
-			if(file.isDirectory())
-			{
-				folderList.add(file.getAbsolutePath());
-				continue;
-			}
-			
-			if(file.isFile())
-			{
-				fileList.add(file.getAbsolutePath());
-				continue;
-			}
-			
-			throw new IOException("Unknonwn type "+file);
+			logger.error("can not list files for {}",folder);
 		}
-		
+		else
+		{
+			for(File file : folders)
+			{
+				if(file.isDirectory())
+				{
+					folderList.add(file.getAbsolutePath());
+					continue;
+				}
+				
+				if(file.isFile())
+				{
+					fileList.add(file.getAbsolutePath());
+					continue;
+				}
+				
+				throw new IOException("Unknonwn type "+file);
+			}
+		}
 		return !folderList.isEmpty();
 	}
 
