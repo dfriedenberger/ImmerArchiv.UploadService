@@ -35,11 +35,19 @@ public class Service {
 
 	//infrastructure
 	private final static MD5Service md5service = new MD5ServiceImpl();
-	private final static MD5Cache md5cache = new MD5CacheImpl(new File("working/md5cache.txt"));
-	private final static BagItCache bagItCache = new BagItCacheImpl(new File("working/bagitCache"));
+	private static MD5Cache md5cache = null;
+	private static BagItCache bagItCache = null;
 
 	public static void main(String[] args) throws Exception {
 	
+		
+		File working = new File("working");
+		working.mkdir();
+		File bagitCache = new File(working,"bagitCache");
+		bagitCache.mkdir();
+		md5cache = new MD5CacheImpl(new File(working,"md5cache.txt"));
+		bagItCache = new BagItCacheImpl(bagitCache);
+		
 		
 		File configFile = new File("config.yml");
 		YAMLFactory yf = new YAMLFactory();
@@ -50,9 +58,6 @@ public class Service {
 		}
 		
 		
-		
-		
-
 		
 		
 		
