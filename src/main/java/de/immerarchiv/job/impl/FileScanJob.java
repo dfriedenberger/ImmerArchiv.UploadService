@@ -2,11 +2,11 @@ package de.immerarchiv.job.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import de.immerarchiv.job.interfaces.Job;
-import de.immerarchiv.job.model.FileStateMap;
+import de.immerarchiv.job.model.Folder;
+import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.util.interfaces.MD5Cache;
 import de.immerarchiv.util.interfaces.MD5Service;
 
@@ -15,14 +15,21 @@ public class FileScanJob implements Job {
 
 	private final MD5Service md5service;
 	private final MD5Cache md5cache;
-	private final List<String> fileQueue;
-	private final FileStateMap fileStates = new FileStateMap();
+	private final Folder folder;
+	private final List<FolderFile> fileQueue;
 
-	public FileScanJob(MD5Service md5service,MD5Cache md5cache,List<String> fileList)
+	public FileScanJob(MD5Service md5service,MD5Cache md5cache,Folder folder,List<FolderFile> files)
 	{
 		this.md5service = md5service;
 		this.md5cache = md5cache;
-		this.fileQueue = fileList;
+		this.folder = folder;
+		this.fileQueue = files;
+	}
+	
+	
+	@Override
+	public int priority() {
+		return 200;
 	}
 	
 	@Override
@@ -37,8 +44,8 @@ public class FileScanJob implements Job {
 		if(fileQueue.isEmpty()) 
 			throw new IOException("has no file to scann");
 		
-		String filepath = fileQueue.remove(0);
-		File file = new File(filepath);
+		FolderFile folderfile = fileQueue.remove(0);
+		File file = new File(folder.getPath(),folderfile.getName());
 		if(!file.isFile())
 			throw new IOException(file + " has to be a file");
 	
@@ -50,10 +57,9 @@ public class FileScanJob implements Job {
 			md5cache.put(file,md5);
 		}
 		
-		if(!fileStates.containsKey(md5)) 
-			fileStates.put(md5, new ArrayList<String>());
+	
 		
-		fileStates.get(md5).add(filepath);
+		folderfile.setMd5(md5);
 				
 		return !fileQueue.isEmpty();
 		
@@ -62,8 +68,7 @@ public class FileScanJob implements Job {
 
 	@Override
 	public String toString() {
-		return "FileScanJob [fileQueue=" + fileQueue.size() + ", fileStates="
-				+ fileStates.size() + "]";
+		return "FileScanJob [fileQueue=" + fileQueue.size() + "]";
 	}
 
 
@@ -73,9 +78,11 @@ public class FileScanJob implements Job {
 		
 	}
 
+
 	@Override
-	public <T> T getResult(Class<T> clazz) {
-		return clazz.cast(fileStates);
+	public List<Job> getNext() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

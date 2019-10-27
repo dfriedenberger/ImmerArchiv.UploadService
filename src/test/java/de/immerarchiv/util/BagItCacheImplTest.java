@@ -27,22 +27,22 @@ public class BagItCacheImplTest {
 		File cachefolder = folder.newFolder();
 
 		BagIt bagit1 = new BagIt();
-		bagit1.repo = "repo1";
-		bagit1.id = "bagitid";
-		bagit1.files = 10;
-		bagit1.lastModified = 1000;
+		bagit1.setRepo("repo1");
+		bagit1.setId("bagitid");
+		bagit1.setFiles(10);
+		bagit1.setLastModified(1000);
 		
 		BagIt bagit1m = new BagIt();
-		bagit1m.repo = "repo1";
-		bagit1m.id = "bagitid";
-		bagit1m.files = 11;
-		bagit1m.lastModified = 2000;
+		bagit1m.setRepo("repo1");
+		bagit1m.setId("bagitid");
+		bagit1m.setFiles(11);
+		bagit1m.setLastModified(2000);
 		
 		BagIt bagit2 = new BagIt();
-		bagit2.repo = "repo2";
-		bagit2.id = "bagitid";
-		bagit2.files = 10;
-		bagit2.lastModified = 1000;
+		bagit2.setRepo("repo2");
+		bagit2.setId("bagitid");
+		bagit2.setFiles(10);
+		bagit2.setLastModified(1000);
 		
 				
 		BagItCache cache = new BagItCacheImpl(cachefolder);

@@ -6,8 +6,8 @@ public class BagItKeyImpl extends KeyImpl {
 
 	public BagItKeyImpl(BagIt bagit) {
 
-		super(new String[]{bagit.repo, bagit.id},
-				new String[]{""+bagit.files, ""+bagit.lastModified});
+		super(new String[]{bagit.getRepo(), bagit.getId()},
+				new String[]{""+bagit.getFiles(), ""+bagit.getLastModified()});
 
 	}
 

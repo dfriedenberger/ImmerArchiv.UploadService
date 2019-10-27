@@ -11,7 +11,8 @@ import org.junit.Test;
 
 import de.immerarchiv.job.impl.FileScanJob;
 import de.immerarchiv.job.interfaces.Job;
-import de.immerarchiv.job.model.FileStateMap;
+import de.immerarchiv.job.model.Folder;
+import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.util.interfaces.MD5Cache;
 import de.immerarchiv.util.interfaces.MD5Service;
 
@@ -28,9 +29,16 @@ public class FileScanJobTest {
 		
 		when(md5service.calc(file)).thenReturn("test-md5-value");
 		
-		List<String> files = new ArrayList<String>();
-		files.add(file.getAbsolutePath());
-		Job job = new FileScanJob(md5service,md5cache,files);		
+		List<FolderFile> files = new ArrayList<FolderFile>();
+		
+		FolderFile folderfile = new FolderFile();
+		folderfile.setName("file-example_PDF_1MB.pdf");
+		folderfile.setLength(12345);
+		files.add(folderfile);
+		
+		Folder folder = new Folder();
+		folder.setPath(file.getParentFile().getAbsolutePath());
+		Job job = new FileScanJob(md5service,md5cache,folder,files);		
 				
 		job.init();
 		while(job.next())
@@ -42,7 +50,9 @@ public class FileScanJobTest {
 		verify(md5cache).put(file, "test-md5-value");
 		verify(md5cache).load();
 		verify(md5cache).save();
-		assertEquals(file.getAbsolutePath(), job.getResult(FileStateMap.class).get("test-md5-value").get(0));
+		
+		
+		assertEquals("test-md5-value",folderfile.getMd5());
 	
 		
 	}
@@ -58,9 +68,17 @@ public class FileScanJobTest {
 		when(md5cache.get(file)).thenReturn("test-md5-value");
 
 		
-		List<String> files = new ArrayList<String>();
-		files.add(file.getAbsolutePath());
-		Job job = new FileScanJob(md5service,md5cache,files);
+		List<FolderFile> files = new ArrayList<FolderFile>();
+
+		FolderFile folderfile = new FolderFile();
+		folderfile.setName("file-example_PDF_1MB.pdf");
+		folderfile.setLength(12345);
+		files.add(folderfile);
+		
+		Folder folder = new Folder();
+		folder.setPath(file.getParentFile().getAbsolutePath());
+		Job job = new FileScanJob(md5service,md5cache,folder,files);		
+		
 		
 		job.init();
 		while(job.next())
@@ -74,8 +92,7 @@ public class FileScanJobTest {
 		verify(md5cache).load();
 		verify(md5cache).save();
 
-		assertEquals(file.getAbsolutePath(),  job.getResult(FileStateMap.class).get("test-md5-value").get(0));
-	
+		assertEquals("test-md5-value",folderfile.getMd5());
 		
 	}
 	

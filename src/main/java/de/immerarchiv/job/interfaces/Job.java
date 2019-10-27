@@ -1,5 +1,7 @@
 package de.immerarchiv.job.interfaces;
 
+import java.util.List;
+
 
 
 
@@ -11,6 +13,8 @@ public interface Job {
 
 	void finish() throws Exception;
 
-	<T> T getResult(Class<T> clazz);
+	int priority();
+
+	List<Job> getNext();
 
 }

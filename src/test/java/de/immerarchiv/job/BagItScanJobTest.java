@@ -7,7 +7,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -15,42 +20,56 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.immerarchiv.app.Config;
 import de.immerarchiv.app.RepositoryConfig;
 import de.immerarchiv.job.impl.BagItScanJob;
+import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
-import de.immerarchiv.job.model.BagItList;
-import de.immerarchiv.job.model.FileInfoList;
+import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.repository.impl.RepositoryService;
 import de.immerarchiv.repository.model.FileInfo;
 import de.immerarchiv.util.interfaces.BagItCache;
 
 public class BagItScanJobTest {
 
+	@Captor
+	private ArgumentCaptor<List<FolderFile>> captor;
+	
+	@Mock
+	BagItCache bagItCache;
+
+	@Mock
+	Archiv archiv;
+	
+    @Before
+    public void init(){
+        MockitoAnnotations.initMocks(this);
+    }
+	  
 	@Test
 	public void testNewBagit() throws Exception {
 		
 		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
 		RepositoryConfig repo = config.repositories.get(0);
-		RepositoryService service = new RepositoryService(repo.url,repo.name, repo.token);
+		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
 		
-		BagItCache bagItCache = mock(BagItCache.class);
+		List<BagIt> bagits = new ArrayList<>();
 
-		BagItList bagits = new BagItList();
+		
 		
 		BagIt bagIt1 = new BagIt();
-		bagIt1.repo = "1";
-		bagIt1.id = "00198f2e-2015-48d0-aa39-d6cb55e6a3eb";
-		bagIt1.files = 12;
-		bagIt1.lastModified = 4711;
+		bagIt1.setRepo("1");
+		bagIt1.setId("29816067-f0f7-4f5c-9cfb-589e40311d23");
+		bagIt1.setFiles(0);
+		bagIt1.setLastModified(0);
 		bagits.add(bagIt1);
 		
 		BagIt bagIt2 = new BagIt();
-		bagIt2.repo = "1";
-		bagIt2.id = "006fd99c-876e-4bf9-adb9-29e57f46f81e";
-		bagIt2.files = 1;
-		bagIt2.lastModified = 815;
+		bagIt2.setRepo("1");
+		bagIt2.setId("500f44ad-3da4-468a-b14b-7f68daea9cfd");
+		bagIt2.setFiles(0);
+		bagIt2.setLastModified(0);
 		bagits.add(bagIt2);
 		
-		Job job = new BagItScanJob(service,bagItCache,bagits);
+		Job job = new BagItScanJob(service,bagItCache,archiv,bagits);
 		
 		   
 		when(bagItCache.get(bagIt1)).thenReturn(null);
@@ -70,31 +89,41 @@ public class BagItScanJobTest {
 		verify(bagItCache).load();
 		verify(bagItCache).save();
 		
-		assertEquals(67,job.getResult(FileInfoList.class).size());
+		verify(archiv).addFile(eq(bagIt1), captor.capture());
+		assertEquals(5,captor.getValue().size());
 		
+		verify(archiv).addFile(eq(bagIt2), captor.capture());
+		assertEquals(0,captor.getValue().size());
 	}
 
 	@Test
 	public void testOldBagit() throws Exception {
 		
 		RepositoryService service = null; //wird nicht genutzt
-		
-		BagItCache bagItCache = mock(BagItCache.class);
 
-		BagItList bagits = new BagItList();
+		List<BagIt> bagits = new ArrayList<>();
 		
 		BagIt bagIt1 = new BagIt();
-		bagIt1.repo = "1";
-		bagIt1.id = "00198f2e-2015-48d0-aa39-d6cb55e6a3eb";
-		bagIt1.files = 12;
-		bagIt1.lastModified = 4711;
-		bagits.add(bagIt1);		
+		bagIt1.setRepo("1");
+		bagIt1.setId("29816067-f0f7-4f5c-9cfb-589e40311d23");
+		bagIt1.setFiles(0);
+		bagIt1.setLastModified(0);
+		bagits.add(bagIt1);
 		
-		Job job = new BagItScanJob(service,bagItCache,bagits);
+		Job job = new BagItScanJob(service,bagItCache,archiv,bagits);
 		
 		   
 		List<FileInfo> list = new ArrayList<FileInfo>();
-		list.add(new FileInfo());
+		
+		FileInfo fileInfo1 = new FileInfo();
+		fileInfo1.CheckSumKey = "md5";
+		fileInfo1.CheckSumKey = "md5";
+		fileInfo1.name = "filenme.ext";
+		fileInfo1.length = 17;
+		
+		list.add(fileInfo1);
+		
+		
 		when(bagItCache.get(bagIt1)).thenReturn(list);
 
 		job.init();
@@ -104,13 +133,15 @@ public class BagItScanJobTest {
 		job.finish();
 		
 		
+		verify(archiv).addFile(eq(bagIt1), captor.capture());
 		
+		assertEquals(1,captor.getValue().size());
 
 		verify(bagItCache,times(0)).put(eq(bagIt1), anyObject());
 		verify(bagItCache).load();
 		verify(bagItCache).save();
 		
-		assertEquals(1,job.getResult(FileInfoList.class).size());
+		
 		
 	}
 	

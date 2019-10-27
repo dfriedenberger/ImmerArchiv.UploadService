@@ -3,31 +3,40 @@ package de.immerarchiv.job.impl;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
-import de.immerarchiv.job.model.BagItList;
 import de.immerarchiv.repository.impl.MetaDataList;
 import de.immerarchiv.repository.impl.RepositoryService;
 import de.immerarchiv.repository.model.MetaDataKeys;
+import de.immerarchiv.util.interfaces.BagItCache;
 
 public class RepositoryScanJob implements Job {
 
 
-	private final BagItList bagitList = new BagItList();
 	private long bagitCnt = -1;
+	private int bagitResolvedCnt = 0;
 	private final RepositoryService repositoryService;
-	private final String repositoryId;
+	private final BagItCache bagItCache;
+	private final Archiv archiv;
 
-	public RepositoryScanJob(String repositoryId,RepositoryService repositoryService) {
-		this.repositoryId = repositoryId;
+	public RepositoryScanJob(Archiv archiv, BagItCache bagItCache,RepositoryService repositoryService) {
+		this.archiv = archiv;
+		this.bagItCache = bagItCache;
 		this.repositoryService = repositoryService;
     }
 
+	@Override
+	public int priority() {
+		return 100;
+	}
+	
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
@@ -49,44 +58,61 @@ public class RepositoryScanJob implements Job {
 		
 		
 		
-		int skip = bagitList.size();
+		int skip = bagitResolvedCnt;
 		Map<String, MetaDataList> metadata = repositoryService.resolveBagits(skip,100);
 		
 		List<BagIt> bagits = metadata.entrySet().stream().map(this::toBagIt).collect(Collectors.toList());
 		
-		bagitList.addAll(bagits);	
+		bagitResolvedCnt += bagits.size();
+		
+		for(BagIt bagIt : bagits)
+			archiv.addBagIt(bagIt);
 				
-		return bagitList.size() < bagitCnt;
+		return bagitResolvedCnt < bagitCnt;
 	}
 
 	@Override
 	public String toString() {
-		return "RepositoryScanJob [bagitList=" + bagitList.size() + ", bagitCnt="
-				+ bagitCnt + ", repositoryId=" + repositoryId + "]";
+		return "RepositoryScanJob [bagitResolvedCnt=" + bagitResolvedCnt + ", bagitCnt="
+				+ bagitCnt + ", repositoryId=" + repositoryService.getId() + "]";
 	}
 
-	public BagIt toBagIt(Entry<String,MetaDataList> e)
+	private BagIt toBagIt(Entry<String,MetaDataList> e)
 	{
 		BagIt bagIt = new BagIt();
-		bagIt.repo = repositoryId;
-		bagIt.id = e.getKey();
-		bagIt.files = e.getValue().getLong(MetaDataKeys.mdBagitCntFiles);
+		bagIt.setRepo(repositoryService.getId());
+		bagIt.setId(e.getKey());
+		bagIt.setFiles(e.getValue().getLong(MetaDataKeys.mdBagitCntFiles));
 		try {
-			bagIt.lastModified = e.getValue().getDate(MetaDataKeys.mdDateLastModified).getTime();
+			bagIt.setLastModified(e.getValue().getDate(MetaDataKeys.mdDateLastModified).getTime());
 		} catch (ParseException exc) {
 			throw new RuntimeException(exc);
 		}
 		return bagIt;
 	}
+	
+	
 	@Override
 	public void finish() {
 		// NOP
 
 	}
 
+
 	@Override
-	public <T> T getResult(Class<T> clazz) {
-		return clazz.cast(bagitList);
+	public List<Job> getNext() {
+    	
+		List<Job> jobs = new ArrayList<>();		
+		List<BagIt> bagits = archiv.selectBagItsForRepository(repositoryService.getId());
+		
+    	for(int i = 0;i < bagits.size();i+= 20)
+    	{
+    		List<BagIt>  bagItListPart = new ArrayList<>();
+    		for(int ix = i;ix < i + 20 && ix < bagits.size();ix++)
+    			bagItListPart.add(bagits.get(ix));
+			jobs.add(new BagItScanJob(repositoryService,bagItCache,archiv,bagItListPart));
+    	}
+    	return jobs;
 	}
 
 

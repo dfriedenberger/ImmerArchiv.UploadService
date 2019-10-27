@@ -53,16 +53,23 @@ public class RepositoryService implements MetaDataKeys {
 	private final String token;
 	private final String name;
 	private final String url;
+	private final String id;
 	private final static Map<String,RepositoryEndpoint> cache = new HashMap<String,RepositoryEndpoint>();
 
 	private final static Logger logger = LogManager.getLogger(RepositoryService.class);
 
-	public RepositoryService(String url, String name, String token) {
+	public RepositoryService(String id,String url, String name, String token) {
 
+		this.id = id;
 		this.url = url;
 		this.name = name;
 		this.token = token;
 
+	}
+
+
+	public String getId() {
+		return id;
 	}
 
 
