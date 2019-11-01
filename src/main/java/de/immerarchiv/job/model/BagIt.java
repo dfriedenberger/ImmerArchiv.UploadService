@@ -1,5 +1,7 @@
 package de.immerarchiv.job.model;
 
+import java.util.regex.Pattern;
+
 public class BagIt {
 	
 	
@@ -7,8 +9,11 @@ public class BagIt {
 
 	private String repo;
 	private String id;
+
+	private String description;
 	private long files;
 	private long lastModified;
+	
 	public String getRepo() {
 		return repo;
 	}
@@ -18,8 +23,17 @@ public class BagIt {
 	public String getId() {
 		return id;
 	}
+	
 	public void setId(String id) {
+		if(!Pattern.matches("^[a-zA-Z0-9\\-]+$", id))
+			throw new IllegalArgumentException(id);
 		this.id = id;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
 	}
 	public long getFiles() {
 		return files;
@@ -68,5 +82,6 @@ public class BagIt {
 	public String toString() {
 		return "BagIt [repo=" + repo + ", id=" + id + ", files=" + files + "]";
 	}
+	
 	
 }

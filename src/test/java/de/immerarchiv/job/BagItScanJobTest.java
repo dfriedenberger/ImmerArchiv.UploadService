@@ -3,7 +3,6 @@ package de.immerarchiv.job;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,11 +13,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
-import de.immerarchiv.app.Config;
-import de.immerarchiv.app.RepositoryConfig;
 import de.immerarchiv.job.impl.BagItScanJob;
 import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.Job;
@@ -39,6 +33,9 @@ public class BagItScanJobTest {
 	@Mock
 	Archiv archiv;
 	
+	@Mock
+	RepositoryService repositoryService;
+	
     @Before
     public void init(){
         MockitoAnnotations.initMocks(this);
@@ -47,10 +44,7 @@ public class BagItScanJobTest {
 	@Test
 	public void testNewBagit() throws Exception {
 		
-		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
-		RepositoryConfig repo = config.repositories.get(0);
-		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
-		
+				
 		List<BagIt> bagits = new ArrayList<>();
 
 		
@@ -69,7 +63,23 @@ public class BagItScanJobTest {
 		bagIt2.setLastModified(0);
 		bagits.add(bagIt2);
 		
-		Job job = new BagItScanJob(service,bagItCache,archiv,bagits);
+		List<FileInfo> fileInfoList1 = new ArrayList<>();
+		FileInfo fileinfo1 = new FileInfo();
+		fileinfo1.CheckSumKey = "md5";
+		fileinfo1.name = "filename1.txt";
+
+		fileInfoList1.add(fileinfo1);
+		FileInfo fileinfo2 = new FileInfo();
+		fileinfo2.CheckSumKey = "md5";
+		fileinfo2.name = "filename1.txt";
+
+		fileInfoList1.add(fileinfo2);
+		when(repositoryService.resolveBagit("29816067-f0f7-4f5c-9cfb-589e40311d23")).thenReturn(fileInfoList1);
+		
+		List<FileInfo> fileInfoList2 = new ArrayList<>();
+		when(repositoryService.resolveBagit("500f44ad-3da4-468a-b14b-7f68daea9cfd")).thenReturn(fileInfoList2);
+		
+		Job job = new BagItScanJob(repositoryService,bagItCache,archiv,bagits);
 		
 		   
 		when(bagItCache.get(bagIt1)).thenReturn(null);
@@ -90,7 +100,7 @@ public class BagItScanJobTest {
 		verify(bagItCache).save();
 		
 		verify(archiv).addFile(eq(bagIt1), captor.capture());
-		assertEquals(5,captor.getValue().size());
+		assertEquals(2,captor.getValue().size());
 		
 		verify(archiv).addFile(eq(bagIt2), captor.capture());
 		assertEquals(0,captor.getValue().size());

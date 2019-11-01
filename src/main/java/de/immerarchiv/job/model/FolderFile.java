@@ -1,24 +1,41 @@
 package de.immerarchiv.job.model;
 
+import java.io.File;
+import java.util.regex.Pattern;
+
 public class FolderFile {
 
-	private String name;
 	private String md5;
 	private long length;
 	
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
+	private File file;
+	private String safeName;
+
+
 	public String getMd5() {
 		return md5;
 	}
 	public void setMd5(String md5) {
 		this.md5 = md5;
 	}
+
+	public String getSafeName() {
+		return safeName;
+	}
+	public void setSafeName(String safeName) {
+		
+		if(!Pattern.matches("^[a-zA-Z0-9\\-_\\.]+$", safeName))
+			throw new IllegalArgumentException(safeName);
+		this.safeName = safeName;
+	}
 	
+	public File getFile() {
+		return file;
+	}
+	public void setFile(File file) {
+		this.file = file;
+	}
+
 	public long getLength() {
 		return length;
 	}
@@ -26,12 +43,14 @@ public class FolderFile {
 		this.length = length;
 	}
 	
+	
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((md5 == null) ? 0 : md5.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((safeName == null) ? 0 : safeName.hashCode());
 		return result;
 	}
 	
@@ -49,16 +68,16 @@ public class FolderFile {
 				return false;
 		} else if (!md5.equals(other.md5))
 			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (safeName == null) {
+			if (other.safeName != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!safeName.equals(other.safeName))
 			return false;
 		return true;
 	}
 	@Override
 	public String toString() {
-		return name + " md5=" + md5;
+		return safeName + " md5=" + md5;
 	}
 	
 }

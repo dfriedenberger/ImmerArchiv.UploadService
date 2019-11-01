@@ -8,9 +8,11 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.net.ssl.SSLContext;
 
@@ -27,7 +29,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -37,7 +42,10 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.immerarchiv.repository.model.AppendFile;
+import de.immerarchiv.repository.model.BagItInfo;
 import de.immerarchiv.repository.model.Checksum;
+import de.immerarchiv.repository.model.Create;
 import de.immerarchiv.repository.model.FileInfo;
 import de.immerarchiv.repository.model.GetFilePart;
 import de.immerarchiv.repository.model.ListAll;
@@ -133,6 +141,9 @@ public class RepositoryService implements MetaDataKeys {
 			repository.getfilepart = modules.path("getfilepart").asText();
 			repository.downloadfile = modules.path("downloadfile").asText();
 			repository.checksum = modules.path("checksum").asText();
+			repository.create = modules.path("create").asText();
+			repository.putfilepart = modules.path("putfilepart").asText();
+			repository.appendfile = modules.path("appendfile").asText();
 
 			cache.put(key,repository);
 			return repository;
@@ -157,6 +168,7 @@ public class RepositoryService implements MetaDataKeys {
 		input.setContentType("application/json");
 		httppost.setEntity(input);
 
+		
 		CloseableHttpResponse response = httpclient.execute(httppost);
 		try {
 
@@ -184,6 +196,56 @@ public class RepositoryService implements MetaDataKeys {
 		}
 	}
 
+	private JsonNode resolveData(String method, Map<String,String> reg, byte[] data) throws IOException, GeneralSecurityException {
+
+		CloseableHttpClient httpclient = getHttpClient();
+
+		HttpPost httppost = new HttpPost(url + "/" + method);
+		httppost.setHeader("Authorization", "Bearer " + token);
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create()
+              .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+		
+		for(Entry<String, String> e : reg.entrySet())
+			builder.addTextBody(e.getKey(), e.getValue());
+			
+		HttpEntity input = builder
+				.addBinaryBody("data", data,ContentType.DEFAULT_BINARY,"xx2.bin")
+				.build();
+
+		httppost.setEntity(input);
+		
+	
+		
+		CloseableHttpResponse response = httpclient.execute(httppost);
+		try {
+
+			// Display status code
+			logger.info(response.getStatusLine());
+
+			// Display response
+			HttpEntity entity = response.getEntity();
+			String body = EntityUtils.toString(entity);
+
+			logger.info("Response {}", body);
+
+			JsonNode tree = mapper.readTree(body);
+
+			String state = tree.path("state").asText();
+			String message = tree.path("message").asText();
+
+			if (!state.equals("ok"))
+				throw new IOException("Error (" + state + ") : " + message);
+
+			return tree;
+
+		} finally {
+			response.close();
+		}
+	}
+	
 	private void write(String method, Object req, OutputStream out) throws IOException, GeneralSecurityException {
 		CloseableHttpClient httpclient = getHttpClient();
 
@@ -249,7 +311,48 @@ public class RepositoryService implements MetaDataKeys {
 
 	}
 
+	public String create(String bagItId, BagItInfo info) throws IOException, GeneralSecurityException {
+		
+		RepositoryEndpoint endpoint = getEndpoint();
+		
+		Create req = new Create();
+
+		req.repository = name;
+		req.bagit = bagItId;
+		req.info = info.toArray();
+
+		JsonNode tree = resolve(endpoint.create, req);
+		return tree.path("bagit").asText();
+	}
 	
+
+
+	public void putFilePart(String tempname, byte[] data) throws IOException, GeneralSecurityException {
+
+		RepositoryEndpoint endpoint = getEndpoint();
+		
+		Map<String,String> req = new LinkedHashMap<>();
+		req.put("repository",name);
+		req.put("tempname",tempname);
+
+		resolveData(endpoint.putfilepart, req, data);
+	}
+	
+	public String appendFile(String bagItId, String filename, String tempname, String md5CheckSum) throws IOException, GeneralSecurityException {
+		RepositoryEndpoint endpoint = getEndpoint();
+		
+		AppendFile req = new AppendFile();
+
+		req.repository = name;
+		req.bagit = bagItId;
+		req.name = filename;
+		req.tempname = tempname;
+		req.md5 = md5CheckSum;
+		req.mode = "complete";
+		
+		JsonNode tree = resolve(endpoint.appendfile, req);
+		return tree.path("md5").asText();
+	}
 	
 	public Map<String,MetaDataList> resolveBagits(int skip, int take) throws IOException, GeneralSecurityException, ParseException {
 
@@ -388,6 +491,14 @@ public class RepositoryService implements MetaDataKeys {
 		return tree.path(endpoint.checkSum).asText();
 		
 	}
+
+
+	
+
+
+
+
+	
 
 
 	

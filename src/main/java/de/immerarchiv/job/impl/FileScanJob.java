@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.List;
 
 import de.immerarchiv.job.interfaces.Job;
-import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
+import de.immerarchiv.job.model.Priority;
 import de.immerarchiv.util.interfaces.MD5Cache;
 import de.immerarchiv.util.interfaces.MD5Service;
 
@@ -15,21 +15,19 @@ public class FileScanJob implements Job {
 
 	private final MD5Service md5service;
 	private final MD5Cache md5cache;
-	private final Folder folder;
 	private final List<FolderFile> fileQueue;
 
-	public FileScanJob(MD5Service md5service,MD5Cache md5cache,Folder folder,List<FolderFile> files)
+	public FileScanJob(MD5Service md5service,MD5Cache md5cache,List<FolderFile> files)
 	{
 		this.md5service = md5service;
 		this.md5cache = md5cache;
-		this.folder = folder;
 		this.fileQueue = files;
 	}
 	
 	
 	@Override
-	public int priority() {
-		return 200;
+	public Priority priority() {
+		return Priority.FileScan;
 	}
 	
 	@Override
@@ -45,7 +43,7 @@ public class FileScanJob implements Job {
 			throw new IOException("has no file to scann");
 		
 		FolderFile folderfile = fileQueue.remove(0);
-		File file = new File(folder.getPath(),folderfile.getName());
+		File file = folderfile.getFile();
 		if(!file.isFile())
 			throw new IOException(file + " has to be a file");
 	

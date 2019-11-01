@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
+import de.immerarchiv.job.model.Priority;
 import de.immerarchiv.repository.impl.MetaDataList;
 import de.immerarchiv.repository.impl.RepositoryService;
 import de.immerarchiv.repository.model.MetaDataKeys;
@@ -33,8 +34,8 @@ public class RepositoryScanJob implements Job {
     }
 
 	@Override
-	public int priority() {
-		return 100;
+	public Priority priority() {
+		return Priority.RepositoryScan;
 	}
 	
 	public RepositoryService getRepositoryService() {
@@ -82,6 +83,7 @@ public class RepositoryScanJob implements Job {
 		BagIt bagIt = new BagIt();
 		bagIt.setRepo(repositoryService.getId());
 		bagIt.setId(e.getKey());
+		bagIt.setDescription(e.getValue().get(MetaDataKeys.mdDescription));
 		bagIt.setFiles(e.getValue().getLong(MetaDataKeys.mdBagitCntFiles));
 		try {
 			bagIt.setLastModified(e.getValue().getDate(MetaDataKeys.mdDateLastModified).getTime());

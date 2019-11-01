@@ -18,4 +18,10 @@ public class RepositoryEndpoint {
 
 	public String checksum;
 
+	public String create;
+
+	public String putfilepart;
+
+	public String appendfile;
+
 }

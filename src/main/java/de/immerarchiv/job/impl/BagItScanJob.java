@@ -9,6 +9,7 @@ import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
 import de.immerarchiv.job.model.FolderFile;
+import de.immerarchiv.job.model.Priority;
 import de.immerarchiv.repository.impl.RepositoryService;
 import de.immerarchiv.repository.model.FileInfo;
 import de.immerarchiv.util.interfaces.BagItCache;
@@ -34,8 +35,8 @@ public class BagItScanJob implements Job {
 	}
 	
 	@Override
-	public int priority() {
-		return 200;
+	public Priority priority() {
+		return Priority.BagItScan;
 	}
 	
 	@Override
@@ -68,9 +69,9 @@ public class BagItScanJob implements Job {
 		FolderFile folderFile = new FolderFile();
 		
 		if(!fileinfo.CheckSumKey.toLowerCase().equals("md5"))
-			throw new RuntimeException("unknonw checksum type "+fileinfo.CheckSumKey);
+			throw new RuntimeException("unknown checksum type "+fileinfo.CheckSumKey);
 		
-		folderFile.setName(fileinfo.name);
+		folderFile.setSafeName(fileinfo.name);
 		folderFile.setMd5(fileinfo.CheckSumValue);
 
 		return folderFile;

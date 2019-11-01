@@ -9,24 +9,35 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import de.immerarchiv.job.impl.FolderScanJob;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
+import de.immerarchiv.util.interfaces.NameService;
 
 public class FolderScanJobTest {
 
 	@Mock
-	FolderSystem folderSystem = null;
+	FolderSystem folderSystem;
+	
+	@Mock 
+	NameService nameService;
 
 	@Before
 	public void init() {
 		MockitoAnnotations.initMocks(this);
 	}
+	
+	@Captor
+	private ArgumentCaptor<FolderFile> captor;
 	
 	@Test
 	public void test() throws Exception {
@@ -40,8 +51,15 @@ public class FolderScanJobTest {
 		folders.add(folder);
 		
 		when(folderSystem.getFolders()).thenReturn(folders);
+		when(nameService.createSafeName(any(File.class))).thenAnswer(new Answer<String>() {
+		    @Override
+		    public String answer(InvocationOnMock invocation) throws Throwable {
+		      Object[] args = invocation.getArguments();
+		      return ((File) args[0]).getName();
+		    }
+		  });
 		
-		Job job = new FolderScanJob(null, null, folderSystem);
+		Job job = new FolderScanJob(null, nameService, null, folderSystem);
 		
 		job.init();
 		while(job.next())
@@ -51,7 +69,12 @@ public class FolderScanJobTest {
 		job.finish();
 
 		verify(folderSystem,times(4)).addFolder(any(Folder.class));
-		verify(folderSystem,times(4)).addFile(any(Folder.class),any(FolderFile.class));
+		verify(folderSystem,times(4)).addFile(any(Folder.class),captor.capture());
+		
+		
+		captor.getAllValues().stream().forEach(folderFile -> {
+			assertNotNull(folderFile.getFile());
+		});
 		
 	}
 	@Test
@@ -70,7 +93,7 @@ public class FolderScanJobTest {
 		when(folderSystem.getFolders()).thenReturn(folders);
 		when(folderSystem.selectFiles(folder)).thenReturn(files1);
 
-		Job job = new FolderScanJob(null, null, folderSystem);
+		Job job = new FolderScanJob(null, nameService, null, folderSystem);
 
 		assertEquals(1,job.getNext().size());
 	}

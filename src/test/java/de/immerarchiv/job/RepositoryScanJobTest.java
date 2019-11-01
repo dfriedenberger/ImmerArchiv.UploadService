@@ -56,11 +56,13 @@ public class RepositoryScanJobTest {
 		Map<String, MetaDataList> map = new HashMap<>();
 		
 		MetaDataList bagIt1 = new MetaDataList();
+		bagIt1.add(MetaDataKeys.mdDescription,"bagit1 Name");
 		bagIt1.add(MetaDataKeys.mdBagitCntFiles,4711);
 		bagIt1.add(MetaDataKeys.mdDateLastModified,MetaDataList.sdf.format(new Date(1234567)));
 		map.put("bagit1", bagIt1);
 		MetaDataList bagIt2 = new MetaDataList();
 		bagIt2.add(MetaDataKeys.mdBagitCntFiles,123);
+		bagIt2.add(MetaDataKeys.mdDescription,"bagit2 Name");
 		bagIt2.add(MetaDataKeys.mdDateLastModified,MetaDataList.sdf.format(new Date(12345)));
 		map.put("bagit2", bagIt2);
 		
@@ -74,7 +76,14 @@ public class RepositoryScanJobTest {
 
 				
 		verify(archiv,times(2)).addBagIt(captor.capture());
+		
 		assertEquals(2, captor.getAllValues().size()); 
+		
+		assertEquals("reposid",captor.getAllValues().get(0).getRepo());
+		assertEquals("bagit1",captor.getAllValues().get(0).getId());
+		assertEquals(4711,captor.getAllValues().get(0).getFiles());
+		assertEquals("bagit1 Name",captor.getAllValues().get(0).getDescription());
+
 		
 	}
 	

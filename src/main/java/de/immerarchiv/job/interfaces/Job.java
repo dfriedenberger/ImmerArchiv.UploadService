@@ -2,6 +2,8 @@ package de.immerarchiv.job.interfaces;
 
 import java.util.List;
 
+import de.immerarchiv.job.model.Priority;
+
 
 
 
@@ -13,7 +15,7 @@ public interface Job {
 
 	void finish() throws Exception;
 
-	int priority();
+	Priority priority();
 
 	List<Job> getNext();
 

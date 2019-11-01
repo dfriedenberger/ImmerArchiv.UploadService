@@ -18,6 +18,7 @@ import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
+import de.immerarchiv.repository.impl.RepositoryService;
 
 public class SynchronizeJobTest {
 
@@ -27,6 +28,12 @@ public class SynchronizeJobTest {
 	@Mock
 	Archiv archiv;
 
+	@Mock
+	RepositoryService repositoryService1;
+
+	@Mock
+	RepositoryService repositoryService2;
+	
 	@Before
 	public void init() {
 		MockitoAnnotations.initMocks(this);
@@ -36,6 +43,14 @@ public class SynchronizeJobTest {
 	public void test() throws Exception {
 		
 		
+		
+		List<RepositoryService> repositoryServices = new ArrayList<>();
+		repositoryServices.add(repositoryService1);
+		repositoryServices.add(repositoryService2);
+
+		when(repositoryService1.getId()).thenReturn("1");
+		when(repositoryService2.getId()).thenReturn("2");
+
 		List<Folder> folders = new ArrayList<Folder>();
 		
 		Folder folder1 = new Folder();
@@ -44,11 +59,11 @@ public class SynchronizeJobTest {
 		List<FolderFile> files1 = new ArrayList<FolderFile>();
 		
 		FolderFile file1 = new FolderFile();
-		file1.setName("name1");
+		file1.setSafeName("name1");
 		file1.setMd5("md5-1");
 
 		FolderFile file2 = new FolderFile();
-		file2.setName("name2");
+		file2.setSafeName("name2");
 		file2.setMd5("md5-2");
 
 		files1.add(file1);
@@ -76,7 +91,7 @@ public class SynchronizeJobTest {
 		bagits.add(bagIt2);
 
 		
-		when(archiv.findBagits(files1)).thenReturn(bagits);
+		when(archiv.findBagits(folder1,files1)).thenReturn(bagits);
 		
 		
 		when(archiv.fileExists(bagIt1, file1)).thenReturn(true);
@@ -84,7 +99,10 @@ public class SynchronizeJobTest {
 		when(archiv.fileExists(bagIt2, file1)).thenReturn(false);
 		when(archiv.fileExists(bagIt2, file2)).thenReturn(false);
 
-		Job job = new SynchronizeJob(archiv,folderSystem);
+		
+		
+		
+		Job job = new SynchronizeJob(repositoryServices,archiv,folderSystem);
 		
 		
 		job.init();
@@ -93,7 +111,7 @@ public class SynchronizeJobTest {
 		job.finish();
 		
 		List<Job> nextJobs = job.getNext();
-		assertEquals(3,nextJobs.size());
+		assertEquals(5,nextJobs.size());
 	}
 
 }

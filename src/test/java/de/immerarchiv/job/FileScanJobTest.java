@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import de.immerarchiv.job.impl.FileScanJob;
 import de.immerarchiv.job.interfaces.Job;
-import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.util.interfaces.MD5Cache;
 import de.immerarchiv.util.interfaces.MD5Service;
@@ -32,13 +31,12 @@ public class FileScanJobTest {
 		List<FolderFile> files = new ArrayList<FolderFile>();
 		
 		FolderFile folderfile = new FolderFile();
-		folderfile.setName("file-example_PDF_1MB.pdf");
+		folderfile.setSafeName("file-example_PDF_1MB.pdf");
 		folderfile.setLength(12345);
+		folderfile.setFile(file);
 		files.add(folderfile);
 		
-		Folder folder = new Folder();
-		folder.setPath(file.getParentFile().getAbsolutePath());
-		Job job = new FileScanJob(md5service,md5cache,folder,files);		
+		Job job = new FileScanJob(md5service,md5cache,files);		
 				
 		job.init();
 		while(job.next())
@@ -71,13 +69,12 @@ public class FileScanJobTest {
 		List<FolderFile> files = new ArrayList<FolderFile>();
 
 		FolderFile folderfile = new FolderFile();
-		folderfile.setName("file-example_PDF_1MB.pdf");
+		folderfile.setSafeName("file-example_PDF_1MB.pdf");
 		folderfile.setLength(12345);
+		folderfile.setFile(file);
 		files.add(folderfile);
 		
-		Folder folder = new Folder();
-		folder.setPath(file.getParentFile().getAbsolutePath());
-		Job job = new FileScanJob(md5service,md5cache,folder,files);		
+		Job job = new FileScanJob(md5service,md5cache,files);		
 		
 		
 		job.init();

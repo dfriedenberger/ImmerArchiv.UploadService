@@ -31,9 +31,11 @@ import de.immerarchiv.repository.impl.RepositoryService;
 import de.immerarchiv.util.impl.BagItCacheImpl;
 import de.immerarchiv.util.impl.MD5CacheImpl;
 import de.immerarchiv.util.impl.MD5ServiceImpl;
+import de.immerarchiv.util.impl.NameServiceImpl;
 import de.immerarchiv.util.interfaces.BagItCache;
 import de.immerarchiv.util.interfaces.MD5Cache;
 import de.immerarchiv.util.interfaces.MD5Service;
+import de.immerarchiv.util.interfaces.NameService;
 
 public class Service {
 
@@ -42,7 +44,7 @@ public class Service {
 	//infrastructure
 	private final static MD5Service md5service = new MD5ServiceImpl();
 	private final static FolderFileComparerService comparerService = new FolderFileComparerServiceImpl();
-
+	private final static NameService nameService = new NameServiceImpl();
 	private static MD5Cache md5cache = null;
 	private static BagItCache bagItCache = null;
 
@@ -80,7 +82,7 @@ public class Service {
 
 		Job currentJob = null;
         PriorityQueue<Job> jobs = new PriorityQueue<>((j1, j2) -> {
-            return j1.priority() - j2.priority();
+            return j1.priority().getValue() - j2.priority().getValue();
         });
  
 		
@@ -164,7 +166,7 @@ public class Service {
 				
 				String[] repositories = repositoryServices.stream().map(rs -> rs.getId()).collect(Collectors.toList()).toArray(new String[0]);
 				
-				Archiv archiv = new ArchivImpl(repositories, comparerService);
+				Archiv archiv = new ArchivImpl(repositories, comparerService,nameService);
 				FolderSystem folderSystem = new FolderSystemImpl();
 				
 				for(PathConfig pathConfig : config.pathes)
@@ -173,17 +175,17 @@ public class Service {
 					folder.setPath(pathConfig.path);
 					folderSystem.addFolder(folder);
 				}
-				jobs.add(new FolderScanJob(md5service, md5cache, folderSystem));
+				jobs.add(new FolderScanJob(md5service, nameService, md5cache, folderSystem));
 
 				for(RepositoryService respositoryService :repositoryServices)
 				{
 					jobs.add(new RepositoryScanJob(archiv,bagItCache, respositoryService));
 				}
 				
-				jobs.add(new SynchronizeJob(archiv, folderSystem));
+				jobs.add(new SynchronizeJob(repositoryServices,archiv, folderSystem));
 				
 				
-				nextscann = new Date().getTime() + 1000 * 60 * 60;
+				nextscann = new Date().getTime() + 1000 * 60 * 1;
 				ApplicationState.set("jobs-nextscann",new Date(nextscann));
 				ApplicationState.set("config-content",config);
 			}

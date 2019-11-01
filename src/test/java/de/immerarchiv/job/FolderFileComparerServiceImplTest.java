@@ -30,15 +30,15 @@ public class FolderFileComparerServiceImplTest {
 		FolderFileComparerService service = new FolderFileComparerServiceImpl();
 		
 		FolderFile file1 = new FolderFile();
-		file1.setName("test.txt");
+		file1.setSafeName("test.txt");
 		file1.setMd5("xxx");
 		
 		FolderFile file2 = new FolderFile();
-		file2.setName("test1.txt");
+		file2.setSafeName("test1.txt");
 		file2.setMd5("xxx1");
 		
 		FolderFile file3 = new FolderFile();
-		file3.setName("test2.txt");
+		file3.setSafeName("test2.txt");
 		file3.setMd5("xxx2");
 		
 		List<FolderFile> list1 = new ArrayList<>();
@@ -63,11 +63,11 @@ public class FolderFileComparerServiceImplTest {
 		FolderFileComparerService service = new FolderFileComparerServiceImpl();
 		
 		FolderFile file1 = new FolderFile();
-		file1.setName("test.txt");
+		file1.setSafeName("test.txt");
 		file1.setMd5("xxx");
 		
 		FolderFile file2 = new FolderFile();
-		file2.setName("test1.txt");
+		file2.setSafeName("test1.txt");
 		file2.setMd5("xxx1");
 	
 		
@@ -89,15 +89,15 @@ public class FolderFileComparerServiceImplTest {
 		FolderFileComparerService service = new FolderFileComparerServiceImpl();
 		
 		FolderFile file1 = new FolderFile();
-		file1.setName("test.txt");
+		file1.setSafeName("test.txt");
 		file1.setMd5("xxx");
 		
 		FolderFile file2 = new FolderFile();
-		file2.setName("test1.txt");
+		file2.setSafeName("test1.txt");
 		file2.setMd5("xxx1");
 		
 		FolderFile file3 = new FolderFile();
-		file3.setName("test2.txt");
+		file3.setSafeName("test2.txt");
 		file3.setMd5("xxx2");
 		
 		List<FolderFile> localFiles = new ArrayList<>();

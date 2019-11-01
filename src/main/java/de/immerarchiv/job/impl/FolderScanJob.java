@@ -12,8 +12,10 @@ import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
+import de.immerarchiv.job.model.Priority;
 import de.immerarchiv.util.interfaces.MD5Cache;
 import de.immerarchiv.util.interfaces.MD5Service;
+import de.immerarchiv.util.interfaces.NameService;
 
 public class FolderScanJob implements Job {
 
@@ -22,15 +24,18 @@ public class FolderScanJob implements Job {
 	private static final long SIZE100MB = 1025 * 1024 * 100;
 	
 	private final MD5Service md5service;
+	private final NameService nameService;
+
 	private final MD5Cache md5cache;
 	
 	private final FolderSystem folderSystem;
 	private final List<Folder> folderQueue;
 
 
+
 	@Override
-	public int priority() {
-		return 100;
+	public Priority priority() {
+		return Priority.FolderScan;
 	}
 	
 	@Override
@@ -38,9 +43,10 @@ public class FolderScanJob implements Job {
 		this.folderQueue.addAll(folderSystem.getFolders());
 	}
 	
-	public 	FolderScanJob(MD5Service md5service,MD5Cache md5cache,FolderSystem folderSystem)
+	public 	FolderScanJob(MD5Service md5service,NameService nameService,MD5Cache md5cache,FolderSystem folderSystem)
 	{
 		this.md5service = md5service;
+		this.nameService = nameService;
 		this.md5cache = md5cache;
 		this.folderSystem = folderSystem;
 		this.folderQueue = new ArrayList<>();
@@ -79,8 +85,10 @@ public class FolderScanJob implements Job {
 				if(file.isFile())
 				{
 					FolderFile folderFile = new FolderFile();
-					folderFile.setName(file.getName());
+					
+					folderFile.setSafeName(nameService.createSafeName(file));
 					folderFile.setLength(file.length());
+					folderFile.setFile(file);
 					folderSystem.addFile(folder,folderFile);
 					continue;
 				}
@@ -120,7 +128,7 @@ public class FolderScanJob implements Job {
 	    		
 	    		if((size > SIZE100MB) || (jobFiles.size() >= 200) || (i + 1 == files.size()))
 	    		{
-	    			jobs.add(new FileScanJob(md5service,md5cache,folder,jobFiles));
+	    			jobs.add(new FileScanJob(md5service,md5cache,jobFiles));
 	    			jobFiles = new ArrayList<>();
 	    			size = 0;
 	    		}
