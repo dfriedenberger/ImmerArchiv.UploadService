@@ -38,5 +38,10 @@ public class Folder {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		return path;
+	}
+
 
 }

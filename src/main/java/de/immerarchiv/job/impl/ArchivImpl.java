@@ -4,12 +4,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.OptionalDouble;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.FolderFileComparerService;
 import de.immerarchiv.job.model.BagIt;
+import de.immerarchiv.job.model.DifferentBagItsException;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.WrongCheckSumException;
@@ -17,6 +23,8 @@ import de.immerarchiv.job.model.WrongFilenameException;
 import de.immerarchiv.util.interfaces.NameService;
 
 public class ArchivImpl implements Archiv {
+
+	private final static Logger logger = LogManager.getLogger(ArchivImpl.class);
 
 	private final String[] repositories;
 	private final Map<BagIt,List<FolderFile>> bagIts = new HashMap<>();
@@ -51,45 +59,73 @@ public class ArchivImpl implements Archiv {
 	
 	
 	@Override
-	public List<BagIt> findBagits(Folder folder,List<FolderFile> files) {
+	public List<BagIt> findBagits(Folder folder,List<FolderFile> files) throws DifferentBagItsException {
 
-		List<BagIt> candidates = new ArrayList<BagIt>();
-		
+		List<BagIt> candidates = new ArrayList<>();
+		Map<BagIt,Double> candidatesMatching = new HashMap<>();
+
 		for(BagIt bagit : bagIts.keySet())
 		{
 			List<FolderFile> bagItFiles = bagIts.get(bagit);
-			if(comparerService.isSameFolder(files,bagItFiles))
+			double matching = comparerService.isSameFolder(files,bagItFiles);
+			if(matching > 0.0)
 			{
 				candidates.add(bagit);
+				candidatesMatching.put(bagit,matching);
 			}
 		}
 		
 		//Check
 		List<String> bagitIds = candidates.stream().map(b -> b.getId()).distinct().collect(Collectors.toList());
 		
+		//select folder with best matching
+		if(bagitIds.size() > 1)
+		{
+			List<String> bestMatching = candidatesMatching.entrySet().stream().filter(e -> e.getValue() > 0.1)
+				.map(e -> e.getKey().getId()).distinct().collect(Collectors.toList());
+			
+			OptionalDouble min = candidatesMatching.entrySet().stream().filter(e -> e.getValue() > 0.1)
+				.mapToDouble(e -> e.getValue()).min();
+			
+			if(bestMatching.size() == 1 && min.isPresent() && min.getAsDouble() >= 0.9)
+			{
+				bagitIds = bestMatching;
+				final String id = bagitIds.get(0);
+				candidates = candidates.stream().filter(b -> b.getId().equals(id)).collect(Collectors.toList());
+			}
+		}
+			
+			
 		
 		switch(bagitIds.size())
 		{
 		case 0:
 			//no bagits, create new
-			String uuid = UUID.randomUUID().toString();
+			String id = UUID.randomUUID().toString();
 			String description = nameService.createDescription(folder);
 			for(String repo : repositories)
 			{
-				candidates.add(getBagit(repo,uuid,description));
+				candidates.add(getBagit(repo,id,description));
 			}
-			//break;
+			return candidates;
 		case 1:
 			//todo bien
+			String id1 = bagitIds.get(0);
+			String description1 = candidates.get(0).getDescription();
 			for(String repo : repositories)
 			{
 				if(candidates.stream().anyMatch(b -> b.getRepo().equals(repo))) continue;
-				candidates.add(getBagit(repo,bagitIds.get(0),candidates.get(0).getDescription()));			
+				candidates.add(getBagit(repo,id1,description1));			
 			}			
 			return candidates;
-			default:
+		default:
 			//different bagits found
-			throw new RuntimeException("different bagits not supportewd "+bagitIds);
+			for(Entry<BagIt, Double> e : candidatesMatching.entrySet())
+			{
+				logger.info("repo:{} bagit:{} files:{} matching:{}", e.getKey().getRepo(),
+						e.getKey().getId(),e.getKey().getFiles(),String.format("%.2f", e.getValue()));
+			}
+			throw new DifferentBagItsException("different bagits not supported "+bagitIds);
 		}
 		
 		

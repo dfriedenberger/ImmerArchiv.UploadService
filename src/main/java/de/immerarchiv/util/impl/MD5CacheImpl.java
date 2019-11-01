@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -63,20 +66,20 @@ public class MD5CacheImpl extends BaseCacheImpl<FileKeyImpl, String> implements 
 		
 		int lines = 0;
 		if(cachefile.exists())
-			try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(cachefile), "UTF8")))
+		{
+			List<String> liness = Files.readAllLines(cachefile.toPath(), Charsets.UTF_8);
+			System.out.println(liness.size());
+			for(String line : liness)
 			{
-				while(reader.ready()) {
-				     String line = reader.readLine();
-				     int i = line.indexOf("=");
-				     
+				  int i = line.indexOf("=");
 				     lines++;
 				     String md5 = line.substring(0,i).trim();
 				     FileKeyImpl key = FileKeyImpl.parse(line.substring(i+1).trim());
 				     super.put(key, md5);
-				     
-				}
-			}
+			}		
+	     }
 		loaded = true;
+	
 		if(lines > super.size())
 		{
 			logger.info("compress cache, because has duplicate entries");

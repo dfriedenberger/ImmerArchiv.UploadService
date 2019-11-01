@@ -55,7 +55,8 @@ public class Service {
 		working.mkdir();
 		File bagitCache = new File(working,"bagitCache");
 		bagitCache.mkdir();
-		
+		new File(working,"log").mkdir();
+
 		//caches
 		md5cache = new MD5CacheImpl(new File(working,"md5cache.txt"));
 		bagItCache = new BagItCacheImpl(bagitCache);

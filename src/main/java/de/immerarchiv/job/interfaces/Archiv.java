@@ -3,6 +3,7 @@ package de.immerarchiv.job.interfaces;
 import java.util.List;
 
 import de.immerarchiv.job.model.BagIt;
+import de.immerarchiv.job.model.DifferentBagItsException;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.WrongCheckSumException;
@@ -20,7 +21,7 @@ public interface Archiv {
 	
 	List<BagIt> selectBagItsForRepository(String id);
 
-	List<BagIt> findBagits(Folder folder,List<FolderFile> files);
+	List<BagIt> findBagits(Folder folder,List<FolderFile> files) throws DifferentBagItsException;
 
 	boolean fileExists(BagIt bagIt, FolderFile file) throws WrongCheckSumException, WrongFilenameException;
 

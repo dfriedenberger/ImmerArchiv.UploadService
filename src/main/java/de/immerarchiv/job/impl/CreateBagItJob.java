@@ -38,7 +38,6 @@ public class CreateBagItJob implements Job {
 		String bagitId = repositoryService.create(bagIt.getId(), info);
 		
 		logger.info("Create bagIt {}",bagitId);
-		
 		return false;
 	}
 

@@ -60,5 +60,30 @@ public class MD5CacheImplTest {
 		
 		
 	}
+	
+	//private static int CNT = 45590; realistic scenario
+	private static int CNT = 1000;
+	
+	@Test
+	public void testBigFile() throws IOException {
+		
+		File cachefile = folder.newFile();
+		MD5Cache cache = new MD5CacheImpl(cachefile);
+		
+		
+		for(int i = 0;i < CNT;i++)
+		{
+			File file = mock(File.class);
+			when(file.lastModified()).thenReturn(1234567L);
+			when(file.length()).thenReturn(815L);
+			when(file.getAbsolutePath()).thenReturn("pathtofile"+i);
+			
+			cache.put(file, "cksum"+i);
+		}
+		System.out.println("Start load");
+		cache.load();
+
+		
+	}
 
 }

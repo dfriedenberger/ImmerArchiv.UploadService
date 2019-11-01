@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.Priority;
@@ -12,6 +15,7 @@ import de.immerarchiv.util.interfaces.MD5Service;
 
 public class FileScanJob implements Job {
 
+	private final static Logger logger = LogManager.getLogger(FileScanJob.class);
 
 	private final MD5Service md5service;
 	private final MD5Cache md5cache;
@@ -47,18 +51,21 @@ public class FileScanJob implements Job {
 		if(!file.isFile())
 			throw new IOException(file + " has to be a file");
 	
-		String md5 = md5cache.get(file);
-		
-		if(md5 == null)
+		if(file.length() > 0)
 		{
-			md5 = md5service.calc(file);
-			md5cache.put(file,md5);
+			String md5 = md5cache.get(file);
+			
+			if(md5 == null)
+			{
+				md5 = md5service.calc(file);
+				md5cache.put(file,md5);
+			}
+			folderfile.setMd5(md5);
 		}
-		
-	
-		
-		folderfile.setMd5(md5);
-				
+		else
+		{
+			logger.error("Empty File {}",file);
+		}
 		return !fileQueue.isEmpty();
 		
 		

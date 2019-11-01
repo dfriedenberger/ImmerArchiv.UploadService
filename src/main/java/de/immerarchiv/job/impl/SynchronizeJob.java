@@ -14,6 +14,7 @@ import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
+import de.immerarchiv.job.model.DifferentBagItsException;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.Priority;
@@ -71,52 +72,56 @@ public class SynchronizeJob implements Job  {
 		
 		if(files.size() > 0)
 		{
-		
-			List<BagIt> bagIts = archiv.findBagits(folder,files);
+			try{
+				List<BagIt> bagIts = archiv.findBagits(folder,files);
 			
-			// check for each File, where file exists 
-			for(FolderFile file : files)
-			{
-				for(BagIt bagIt : bagIts)
+				// check for each File, where file exists 
+				for(FolderFile file : files)
 				{
-					try
+					for(BagIt bagIt : bagIts)
 					{
-						if(!archiv.fileExists(bagIt,file))
+						try
 						{
-							//must synchronize
-							//upload file to bagit
-							
-							List<RepositoryService> repos = repositoryServices.stream().filter(rs -> rs.getId().equals(bagIt.getRepo())).collect(Collectors.toList());
-
-							if(repos.size() != 1)
+							if(!archiv.fileExists(bagIt,file))
 							{
-								throw new RuntimeException("Could not select single service for "+bagIt);
+								//must synchronize
+								//upload file to bagit
+								
+								List<RepositoryService> repos = repositoryServices.stream().filter(rs -> rs.getId().equals(bagIt.getRepo())).collect(Collectors.toList());
+	
+								if(repos.size() != 1)
+								{
+									throw new RuntimeException("Could not select single service for "+bagIt);
+								}
+								
+								if(!existingBagIts.contains(bagIt))
+								{
+									//create BagIt
+									nextJobs.add(new CreateBagItJob(repos.get(0),bagIt));
+									existingBagIts.add(bagIt);
+								}
+								
+								nextJobs.add(new UploadJob(repos.get(0),new NameServiceImpl(),bagIt,file));
 							}
-							
-							if(!existingBagIts.contains(bagIt))
-							{
-								//create BagIt
-								nextJobs.add(new CreateBagItJob(repos.get(0),bagIt));
-								existingBagIts.add(bagIt);
-							}
-							
-							nextJobs.add(new UploadJob(repos.get(0),new NameServiceImpl(),bagIt,file));
+						}
+						catch (WrongCheckSumException e)
+						{
+							logger.error("WrongCheckSumException {}, try rename file",file.getFile());
+						}
+						catch (WrongFilenameException e)
+						{
+							logger.warn("WrongFilenameException {} , file exists with {}",file.getFile(),e.getMessage());
 						}
 					}
-					catch (WrongCheckSumException e)
-					{
-						logger.error("WrongCheckSumException {}, try rename file",file.getFile());
-					}
-					catch (WrongFilenameException e)
-					{
-						logger.warn("WrongFilenameException {} , file exists with {}",file.getFile(),e.getMessage());
-					}
+					
+					
+					
 				}
-				
-				
-				
 			}
-			
+			catch(DifferentBagItsException e)
+			{
+				logger.error("DifferentBagItsException {}",e.getMessage());
+			}
 		}
 		else
 		{

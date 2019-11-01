@@ -6,6 +6,6 @@ import de.immerarchiv.job.model.FolderFile;
 
 public interface FolderFileComparerService {
 
-	boolean isSameFolder(List<FolderFile> list, List<FolderFile> files);
+	double isSameFolder(List<FolderFile> list, List<FolderFile> files);
 
 }

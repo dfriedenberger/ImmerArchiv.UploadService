@@ -16,6 +16,7 @@ import de.immerarchiv.job.impl.ArchivImpl;
 import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.FolderFileComparerService;
 import de.immerarchiv.job.model.BagIt;
+import de.immerarchiv.job.model.DifferentBagItsException;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.WrongCheckSumException;
@@ -50,7 +51,7 @@ public class ArchivImplTest {
 	}
 	
 	@Test
-	public void testFindBagitsAll() {
+	public void testFindBagitsAll() throws DifferentBagItsException {
 		
 		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
 		
@@ -90,9 +91,9 @@ public class ArchivImplTest {
 		
 		List<FolderFile> files = new ArrayList<FolderFile>();
 		
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(true);
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles2))).thenReturn(true); 
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(false);
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(0.1);
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles2))).thenReturn(0.1); 
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(0.0);
 
 		
 		List<BagIt> bagits = archiv.findBagits(null,files);
@@ -107,11 +108,60 @@ public class ArchivImplTest {
 		assertEquals(1,archiv.selectBagItsForRepository("repo2").size());
 	}
 
+	@Test
+	public void testFindBagitsBest() throws DifferentBagItsException {
+		
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		
+		BagIt bagit = new BagIt();
+		bagit.setRepo("repo2");
+		bagit.setId("bagitid");
+		bagit.setDescription("bagit 1");
+
+		bagit.setFiles(0);
+		bagit.setLastModified(0);
+
+		List<FolderFile> bagItFiles = createBagitFiles("ab");
+		archiv.addBagIt(bagit);
+		archiv.addFile(bagit,bagItFiles);
+		
+		BagIt bagit2 = new BagIt();
+		bagit2.setRepo("repo1");
+		bagit2.setId("bagitid1");
+		bagit2.setDescription("bagit 1a");
+		bagit2.setFiles(0);
+		bagit2.setLastModified(0);
+
+		List<FolderFile> bagItFiles2 = createBagitFiles("a");
+		archiv.addBagIt(bagit2);
+		archiv.addFile(bagit2,bagItFiles2);
+		
+		
+
+		
+		List<FolderFile> files = new ArrayList<FolderFile>();
+		
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(0.9);
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles2))).thenReturn(0.1); 
+
+		
+		List<BagIt> bagits = archiv.findBagits(null,files);
+		
+		assertEquals(2, bagits.size());
+		assertEquals("repo2",bagits.get(0).getRepo());
+		assertEquals("bagitid",bagits.get(0).getId());
+		assertEquals("repo1",bagits.get(1).getRepo());
+		assertEquals("bagitid",bagits.get(1).getId());
+		
+		assertEquals(2,archiv.selectBagItsForRepository("repo1").size());
+		assertEquals(1,archiv.selectBagItsForRepository("repo2").size());
+	}
+
 	
 
 
 	@Test
-	public void testFindBagitsAndCompleteWithSameId() {
+	public void testFindBagitsAndCompleteWithSameId() throws DifferentBagItsException {
 		
 		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
 		
@@ -153,9 +203,9 @@ public class ArchivImplTest {
 		List<FolderFile> files = new ArrayList<FolderFile>();
 		
 
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(true);
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles2))).thenReturn(false); //e.g if is empty matcher failed
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(false);
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(1.0);
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles2))).thenReturn(0.0); //e.g if is empty matcher failed
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(0.0);
 		
 		
 		List<BagIt> bagits = archiv.findBagits(null,files);
@@ -172,7 +222,7 @@ public class ArchivImplTest {
 	}
 
 	@Test
-	public void testFindBagitsAndCompleteWithNewBagits() {
+	public void testFindBagitsAndCompleteWithNewBagits() throws DifferentBagItsException {
 		
 		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
 		
@@ -202,8 +252,8 @@ public class ArchivImplTest {
 		List<FolderFile> files = new ArrayList<FolderFile>();
 		
 			
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(true);
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(false);
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(1.0);
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(0.0);
 		
 		
 		List<BagIt> bagits = archiv.findBagits(null,files);
@@ -221,7 +271,7 @@ public class ArchivImplTest {
 	}
 	
 	@Test
-	public void testFindBagitsAndCreateNewBagits() {
+	public void testFindBagitsAndCreateNewBagits() throws DifferentBagItsException {
 		
 		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
 				
@@ -239,7 +289,7 @@ public class ArchivImplTest {
 		List<FolderFile> files = new ArrayList<FolderFile>();
 	
 		
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(false);
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(0.0);
 
 		Folder folder = new Folder();
 		when(nameService.createDescription(folder)).thenReturn("folder description");

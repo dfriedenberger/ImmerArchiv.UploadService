@@ -6,6 +6,7 @@ import java.util.List;
 
 
 
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,7 +47,7 @@ public class UploadJob implements Job {
 	@Override
 	public boolean next() throws Exception {
 		
-		
+
 		if(sended < file.getLength())
 		{
 			int cnt = (int) Math.min(file.getLength() - sended, POST_MAX_SIZE );
@@ -71,7 +72,6 @@ public class UploadJob implements Job {
 		
 		
 		logger.info("upload file {} to {}",file,bagIt);
-		
 		
 	
 		

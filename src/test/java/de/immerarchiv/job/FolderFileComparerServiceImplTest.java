@@ -52,7 +52,7 @@ public class FolderFileComparerServiceImplTest {
 		list2.add(file2);
 		list2.add(file3);
 		
-		assertTrue(service.isSameFolder(list1,list2));
+		assertEquals(1.0,service.isSameFolder(list1,list2),0.0);
 		
 	}
 	
@@ -79,7 +79,7 @@ public class FolderFileComparerServiceImplTest {
 		List<FolderFile> list2 = new ArrayList<>();
 		list2.add(file2);
 		
-		assertFalse(service.isSameFolder(list1,list2));
+		assertEquals(0.0,service.isSameFolder(list1,list2),0.0);
 		
 	}
 	
@@ -110,7 +110,7 @@ public class FolderFileComparerServiceImplTest {
 		bagitFiles.add(file1);
 		bagitFiles.add(file2);
 		
-		assertTrue(service.isSameFolder(localFiles,bagitFiles));
-		
+		assertEquals(0.66,service.isSameFolder(localFiles,bagitFiles),0.01);
+
 	}
 }

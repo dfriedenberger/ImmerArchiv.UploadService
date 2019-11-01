@@ -10,7 +10,7 @@ import de.immerarchiv.job.model.FolderFile;
 public class FolderFileComparerServiceImpl implements FolderFileComparerService {
 
 	@Override
-	public boolean isSameFolder(List<FolderFile> localFiles, List<FolderFile> bagItFiles) {
+	public double isSameFolder(List<FolderFile> localFiles, List<FolderFile> bagItFiles) {
 
 		if(localFiles.isEmpty())
 			throw new IllegalArgumentException("localFiles is empty");
@@ -27,8 +27,11 @@ public class FolderFileComparerServiceImpl implements FolderFileComparerService 
          //System.out.println(similar);
          //System.out.println(different);
          
+         if(similar.size() == 0) return 0.0;
+         
+         return 1.0 * similar.size() / (similar.size() + different.size());
                 
-		return similar.size() > 0; //&& different.size() == 0;
+		//return similar.size() > 0; //&& different.size() == 0;
 	}
 
 }
