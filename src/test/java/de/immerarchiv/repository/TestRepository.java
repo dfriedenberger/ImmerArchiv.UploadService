@@ -8,6 +8,7 @@ import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -23,6 +24,7 @@ import de.immerarchiv.repository.model.BagItInfo;
 
 public class TestRepository {
 
+	@Ignore
 	@Test
 	public void testConnect() throws IOException, GeneralSecurityException, ParseException {
 
@@ -36,7 +38,7 @@ public class TestRepository {
 	
 	}
 	
-	
+	@Ignore
 	@Test
 	public void testCreateBagit() throws IOException, GeneralSecurityException, ParseException {
 
@@ -51,6 +53,7 @@ public class TestRepository {
 	
 	}
 
+	@Ignore
 	@Test
 	public void testUploadFile() throws IOException, GeneralSecurityException
 	{
@@ -72,7 +75,7 @@ public class TestRepository {
 		
 	}
 	
-	
+	@Ignore
 	@Test
 	public void testListAllBagits() throws IOException, GeneralSecurityException, ParseException
 	{
