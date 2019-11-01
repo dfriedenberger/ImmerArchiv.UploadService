@@ -47,7 +47,6 @@ public class FileScanJobTest {
 
 		verify(md5cache).put(file, "test-md5-value");
 		verify(md5cache).load();
-		verify(md5cache).save();
 		
 		
 		assertEquals("test-md5-value",folderfile.getMd5());
@@ -87,7 +86,6 @@ public class FileScanJobTest {
 		//no calc md5 
 		verify(md5service,times(0)).calc(file);
 		verify(md5cache).load();
-		verify(md5cache).save();
 
 		assertEquals("test-md5-value",folderfile.getMd5());
 		

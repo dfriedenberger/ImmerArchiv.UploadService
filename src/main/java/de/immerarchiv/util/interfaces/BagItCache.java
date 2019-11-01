@@ -14,5 +14,4 @@ public interface BagItCache {
 
 	void load() throws IOException;
 	
-	void save() throws IOException;
 }

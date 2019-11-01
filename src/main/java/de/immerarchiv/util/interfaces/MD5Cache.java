@@ -11,7 +11,6 @@ public interface MD5Cache {
 
 	void load() throws IOException;
 	
-	void save() throws IOException;
 
 
 }

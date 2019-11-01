@@ -54,9 +54,4 @@ public class BagItCacheImpl extends BaseCacheImpl<BagItKeyImpl,List<FileInfo>> i
 		}
 	}
 
-	@Override
-	public void save() throws IOException {		
-		//NOP, nothing to do
-	}
-
 }

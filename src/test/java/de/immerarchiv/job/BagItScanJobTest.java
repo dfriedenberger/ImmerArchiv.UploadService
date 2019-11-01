@@ -97,7 +97,6 @@ public class BagItScanJobTest {
 		verify(bagItCache).put(eq(bagIt1), anyObject());
 		verify(bagItCache).put(eq(bagIt2), anyObject());
 		verify(bagItCache).load();
-		verify(bagItCache).save();
 		
 		verify(archiv).addFile(eq(bagIt1), captor.capture());
 		assertEquals(2,captor.getValue().size());
@@ -149,7 +148,6 @@ public class BagItScanJobTest {
 
 		verify(bagItCache,times(0)).put(eq(bagIt1), anyObject());
 		verify(bagItCache).load();
-		verify(bagItCache).save();
 		
 		
 		

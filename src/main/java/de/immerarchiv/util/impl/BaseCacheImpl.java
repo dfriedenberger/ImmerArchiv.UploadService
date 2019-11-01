@@ -37,4 +37,8 @@ public class BaseCacheImpl<K extends KeyImpl,T> {
 		return cache.entrySet();
 	}
 
+	public int size() {
+		return cache.size();
+	}
+
 }

@@ -41,8 +41,13 @@ public class MD5CacheImplTest {
 		assertEquals("md5-sum-2",cache.get(filem));
 		assertEquals(null,cache.get(file));
 
+		cache.load(); //=> produce log "ignore loading"
+
 		long l1 = cachefile.length();
-		cache.save();
+
+		MD5Cache cache1compr = new MD5CacheImpl(cachefile);
+		cache1compr.load();
+		
 		long l2 = cachefile.length();
 
 		assertTrue(l2 < l1);

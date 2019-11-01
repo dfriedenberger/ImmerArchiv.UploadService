@@ -72,8 +72,7 @@ public class FileScanJob implements Job {
 
 	@Override
 	public void finish() throws Exception {
-		md5cache.save();
-		
+		//NOP
 	}
 
 

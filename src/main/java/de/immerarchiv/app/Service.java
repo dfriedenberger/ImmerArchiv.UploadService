@@ -185,7 +185,7 @@ public class Service {
 				jobs.add(new SynchronizeJob(repositoryServices,archiv, folderSystem));
 				
 				
-				nextscann = new Date().getTime() + 1000 * 60 * 1;
+				nextscann = new Date().getTime() + 1000 * 60 * 60;
 				ApplicationState.set("jobs-nextscann",new Date(nextscann));
 				ApplicationState.set("config-content",config);
 			}

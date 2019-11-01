@@ -79,7 +79,7 @@ public class BagItScanJob implements Job {
 	
 	@Override
 	public void finish() throws IOException {
-		bagItCache.save();
+		//NOP
 	}
 
 	@Override

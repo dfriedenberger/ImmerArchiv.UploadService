@@ -67,7 +67,6 @@ public class BagItCacheImplTest {
 		assertEquals(list2,cache.get(bagit1m));
 		assertEquals(null,cache.get(bagit1));
 
-		cache.save();
 
 		
 		assertEquals(2,cachefolder.listFiles().length);
