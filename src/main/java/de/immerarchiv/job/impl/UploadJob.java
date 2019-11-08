@@ -2,10 +2,13 @@ package de.immerarchiv.job.impl;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.text.DecimalFormat;
 import java.util.List;
 
 
 
+
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,6 +18,7 @@ import de.immerarchiv.job.model.BagIt;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.Priority;
 import de.immerarchiv.repository.impl.RepositoryService;
+import de.immerarchiv.repository.model.BagItInfo;
 import de.immerarchiv.util.interfaces.NameService;
 
 public class UploadJob implements Job {
@@ -31,9 +35,12 @@ public class UploadJob implements Job {
 
 	private long sended = 0;
 
-	public UploadJob(RepositoryService repositoryService,NameService nameService,BagIt bagIt, FolderFile file) {
+	private final Set<BagIt> existingBagIts;
+
+	public UploadJob(RepositoryService repositoryService,NameService nameService,BagIt bagIt, FolderFile file, Set<BagIt> existingBagIts) {
 
 		this.repositoryService = repositoryService;
+		this.existingBagIts = existingBagIts;
 		this.bagIt = bagIt;
 		this.file = file;
 		this.tempname = nameService.generateTempName(file.getSafeName());
@@ -47,6 +54,19 @@ public class UploadJob implements Job {
 	@Override
 	public boolean next() throws Exception {
 		
+		if(!existingBagIts.contains(bagIt))
+		{
+			BagItInfo info = new BagItInfo();
+			info.setDescription(bagIt.getDescription());
+			
+			String bagitId = repositoryService.create(bagIt.getId(), info);
+			
+			existingBagIts.add(bagIt);
+
+			logger.info("Create bagIt {}",bagitId);
+
+			return true;
+		}
 
 		if(sended < file.getLength())
 		{
@@ -66,6 +86,9 @@ public class UploadJob implements Job {
 			
 			repositoryService.putFilePart(tempname, data);
 		
+			logger.info("put file part {} %",new DecimalFormat("#.00").format((sended * 100.0) / file.getLength()));
+
+			
 			return true;
 		}
 		repositoryService.appendFile(bagIt.getId(), file.getSafeName(), tempname, file.getMd5());
@@ -93,6 +116,11 @@ public class UploadJob implements Job {
 	public List<Job> getNext() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String toString() {
+		return "UploadJob [bagIt=" + bagIt + ", file=" + file + "]";
 	}
 
 }

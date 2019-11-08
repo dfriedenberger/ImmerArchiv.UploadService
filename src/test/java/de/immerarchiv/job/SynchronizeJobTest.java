@@ -111,7 +111,7 @@ public class SynchronizeJobTest {
 		job.finish();
 		
 		List<Job> nextJobs = job.getNext();
-		assertEquals(5,nextJobs.size());
+		assertEquals(3,nextJobs.size());
 	}
 
 }

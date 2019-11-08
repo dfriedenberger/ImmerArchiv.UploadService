@@ -5,7 +5,9 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +21,7 @@ import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.repository.impl.RepositoryService;
+import de.immerarchiv.repository.model.BagItInfo;
 import de.immerarchiv.util.interfaces.NameService;
 
 public class UploadJobTest {
@@ -37,6 +40,8 @@ public class UploadJobTest {
 	@Captor
 	private ArgumentCaptor<byte[]> captor;
 	
+	@Captor
+	private ArgumentCaptor<BagItInfo> bagItInfoCaptor;
 	
 	@Test
 	public void test() throws Exception {
@@ -46,7 +51,8 @@ public class UploadJobTest {
 		
 		BagIt bagIt = new BagIt();
 		bagIt.setId("12345");
-		
+		bagIt.setDescription("test description");
+
 		FolderFile folderFile = new FolderFile();
 		folderFile.setMd5("testmd5");
 		folderFile.setSafeName("filename");
@@ -55,12 +61,18 @@ public class UploadJobTest {
 		
 		when(nameService.generateTempName("filename")).thenReturn("tempname.xxx");
 		
-		Job job = new UploadJob(repositoryService,nameService,bagIt,folderFile);
+		Set<BagIt> existingBagIts = new HashSet<>();
+		Job job = new UploadJob(repositoryService,nameService,bagIt,folderFile,existingBagIts);
 		
 		job.init();
 		while(job.next())
 			System.out.println(job);
 		job.finish();
+		
+		
+		verify(repositoryService).create(eq("12345"), bagItInfoCaptor.capture());
+		assertEquals("test description",bagItInfoCaptor.getValue().getDescription());
+		assertTrue(existingBagIts.contains(bagIt));
 		
 		verify(repositoryService,times(9)).putFilePart(eq("tempname.xxx"), captor.capture());
 

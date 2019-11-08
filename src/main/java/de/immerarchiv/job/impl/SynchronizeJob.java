@@ -94,14 +94,9 @@ public class SynchronizeJob implements Job  {
 									throw new RuntimeException("Could not select single service for "+bagIt);
 								}
 								
-								if(!existingBagIts.contains(bagIt))
-								{
-									//create BagIt
-									nextJobs.add(new CreateBagItJob(repos.get(0),bagIt));
-									existingBagIts.add(bagIt);
-								}
+						
 								
-								nextJobs.add(new UploadJob(repos.get(0),new NameServiceImpl(),bagIt,file));
+								nextJobs.add(new UploadJob(repos.get(0),new NameServiceImpl(),bagIt,file,existingBagIts));
 							}
 						}
 						catch (WrongCheckSumException e)
