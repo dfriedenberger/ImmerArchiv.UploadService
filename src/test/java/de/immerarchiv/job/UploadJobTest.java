@@ -67,7 +67,6 @@ public class UploadJobTest {
 		job.init();
 		while(job.next())
 			System.out.println(job);
-		job.finish();
 		
 		
 		verify(repositoryService).create(eq("12345"), bagItInfoCaptor.capture());

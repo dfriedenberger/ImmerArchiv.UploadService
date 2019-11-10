@@ -37,7 +37,7 @@ public class SynchronizeJob implements Job  {
 	private Set<BagIt> existingBagIts = new HashSet<>();
 
 	
-	public SynchronizeJob(List<RepositoryService> repositoryServices, Archiv archiv,FolderSystem folderSystem)
+	public SynchronizeJob(List<RepositoryService> repositoryServices,Archiv archiv,FolderSystem folderSystem)
 	{
 		this.repositoryServices = repositoryServices;
 		this.archiv = archiv;
@@ -130,11 +130,7 @@ public class SynchronizeJob implements Job  {
 		return !queue.isEmpty();
 	}
 
-	@Override
-	public void finish() throws Exception {
-		// TODO Auto-generated method stub
-
-	}
+	
 
 	@Override
 	public Priority priority() {

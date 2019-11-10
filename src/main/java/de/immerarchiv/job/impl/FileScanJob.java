@@ -78,12 +78,6 @@ public class FileScanJob implements Job {
 
 
 	@Override
-	public void finish() throws Exception {
-		//NOP
-	}
-
-
-	@Override
 	public List<Job> getNext() {
 		// TODO Auto-generated method stub
 		return null;

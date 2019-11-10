@@ -13,7 +13,6 @@ public interface Job {
 	
 	boolean next() throws Exception;
 
-	void finish() throws Exception;
 
 	Priority priority();
 

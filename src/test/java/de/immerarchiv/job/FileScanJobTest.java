@@ -43,7 +43,6 @@ public class FileScanJobTest {
 		{			
 			System.out.println(job);
 		} 
-		job.finish();
 
 		verify(md5cache).put(file, "test-md5-value");
 		verify(md5cache).load();
@@ -81,7 +80,6 @@ public class FileScanJobTest {
 		{			
 			System.out.println(job);
 		} 
-		job.finish();
 
 		//no calc md5 
 		verify(md5service,times(0)).calc(file);

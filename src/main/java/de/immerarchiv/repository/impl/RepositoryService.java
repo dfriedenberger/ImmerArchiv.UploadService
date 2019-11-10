@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.net.ssl.SSLContext;
 
@@ -26,6 +28,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -101,12 +104,12 @@ public class RepositoryService implements MetaDataKeys {
 		if(cache.containsKey(key))
 			return cache.get(key);
 		
-		CloseableHttpClient httpclient = getHttpClient();
 
-		HttpGet httppost = new HttpGet(url + "/" + "info.json");
+		HttpGet httpget = new HttpGet(url + "/" + "info.json");
 
-		CloseableHttpResponse response = httpclient.execute(httppost);
-
+		
+		CloseableHttpResponse response = execute(httpget);
+		
 		try {
 
 			// Display status code
@@ -152,9 +155,38 @@ public class RepositoryService implements MetaDataKeys {
 		}
 	}
 
+	private CloseableHttpResponse execute(HttpUriRequest httpMethod) throws GeneralSecurityException, IOException {
+		
+		int hardTimeout = 60 * 1000;
+		TimerTask task = new TimerTask() {
+		    @Override
+		    public void run() {
+		        if (httpMethod != null) {
+		        	logger.error("abort execute after 60 seconds");
+		        	httpMethod.abort();
+		        }
+		    }
+		};
+		Timer timer = new Timer(true);
+		
+		timer.schedule(task, hardTimeout);
+		
+		
+		CloseableHttpClient httpclient = getHttpClient();
+
+		logger.trace("Request {}",httpMethod);
+		CloseableHttpResponse response = httpclient.execute(httpMethod);
+		logger.trace("Response {}",response);
+		
+        timer.cancel();
+
+		return response;
+		
+	}
+
+
 	private JsonNode resolve(String method, Object req) throws IOException, GeneralSecurityException {
 
-		CloseableHttpClient httpclient = getHttpClient();
 
 		HttpPost httppost = new HttpPost(url + "/" + method);
 		httppost.setHeader("Authorization", "Bearer " + token);
@@ -168,8 +200,8 @@ public class RepositoryService implements MetaDataKeys {
 		input.setContentType("application/json");
 		httppost.setEntity(input);
 
-		
-		CloseableHttpResponse response = httpclient.execute(httppost);
+		CloseableHttpResponse response = execute(httppost);
+
 		try {
 
 			// Display status code
@@ -198,7 +230,6 @@ public class RepositoryService implements MetaDataKeys {
 
 	private JsonNode resolveData(String method, Map<String,String> reg, byte[] data) throws IOException, GeneralSecurityException {
 
-		CloseableHttpClient httpclient = getHttpClient();
 
 		HttpPost httppost = new HttpPost(url + "/" + method);
 		httppost.setHeader("Authorization", "Bearer " + token);
@@ -218,8 +249,8 @@ public class RepositoryService implements MetaDataKeys {
 		httppost.setEntity(input);
 		
 	
-		
-		CloseableHttpResponse response = httpclient.execute(httppost);
+		CloseableHttpResponse response = execute(httppost);
+
 		try {
 
 			// Display status code
@@ -247,7 +278,6 @@ public class RepositoryService implements MetaDataKeys {
 	}
 	
 	private void write(String method, Object req, OutputStream out) throws IOException, GeneralSecurityException {
-		CloseableHttpClient httpclient = getHttpClient();
 
 		HttpPost httppost = new HttpPost(url + "/" + method);
 		httppost.setHeader("Authorization", "Bearer " + token);
@@ -261,7 +291,7 @@ public class RepositoryService implements MetaDataKeys {
 		input.setContentType("application/json");
 		httppost.setEntity(input);
 
-		CloseableHttpResponse response = httpclient.execute(httppost);
+		CloseableHttpResponse response = execute(httppost);
 		try {
 
 			// Display status code

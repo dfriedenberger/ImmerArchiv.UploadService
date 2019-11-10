@@ -78,11 +78,6 @@ public class BagItScanJob implements Job {
 	}
 	
 	@Override
-	public void finish() throws IOException {
-		//NOP
-	}
-
-	@Override
 	public String toString() {
 		return "BagItScanJob [bagitQueue=" + bagitQueue.size() + "]";
 	}

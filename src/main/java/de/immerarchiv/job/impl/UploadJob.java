@@ -101,12 +101,7 @@ public class UploadJob implements Job {
 		return false;
 	}
 
-	@Override
-	public void finish() throws Exception {
-		// TODO Auto-generated method stub
-
-	}
-
+	
 	@Override
 	public Priority priority() {
 		return Priority.Upload;

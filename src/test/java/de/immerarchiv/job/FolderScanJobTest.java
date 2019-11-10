@@ -66,7 +66,6 @@ public class FolderScanJobTest {
 		{			
 			System.out.println(job);
 		} 
-		job.finish();
 
 		verify(folderSystem,times(4)).addFolder(any(Folder.class));
 		verify(folderSystem,times(4)).addFile(any(Folder.class),captor.capture());

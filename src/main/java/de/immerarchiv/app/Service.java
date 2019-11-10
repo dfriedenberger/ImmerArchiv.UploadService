@@ -117,14 +117,14 @@ public class Service {
 				} 
 				catch(Exception e)
 				{
-					e.printStackTrace();
+					logger.error("job failed {}",currentJob);
+
+					logger.error(e);
 					ApplicationState.incr("jobs-errors");
 				}
-				logger.info("finish job {}",currentJob);
-				currentJob.finish();
-
-				List<Job> nextJobs = currentJob.getNext();
 				
+				logger.info("finish job {}",currentJob);
+				List<Job> nextJobs = currentJob.getNext();
 				
 				if(nextJobs != null)
 			    {

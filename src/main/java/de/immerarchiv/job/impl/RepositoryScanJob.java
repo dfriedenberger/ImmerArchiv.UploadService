@@ -92,14 +92,6 @@ public class RepositoryScanJob implements Job {
 		}
 		return bagIt;
 	}
-	
-	
-	@Override
-	public void finish() {
-		// NOP
-
-	}
-
 
 	@Override
 	public List<Job> getNext() {

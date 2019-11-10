@@ -89,7 +89,6 @@ public class BagItScanJobTest {
 
 		while(job.next())
 			System.out.println(job);
-		job.finish();
 		
 		
 		
@@ -139,7 +138,6 @@ public class BagItScanJobTest {
 
 		while(job.next())
 			System.out.println(job);
-		job.finish();
 		
 		
 		verify(archiv).addFile(eq(bagIt1), captor.capture());

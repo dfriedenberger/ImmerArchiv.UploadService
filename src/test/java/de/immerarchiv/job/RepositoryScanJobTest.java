@@ -72,7 +72,6 @@ public class RepositoryScanJobTest {
 		job.init();
 		while(job.next())
 			System.out.println(job);
-		job.finish();
 
 				
 		verify(archiv,times(2)).addBagIt(captor.capture());

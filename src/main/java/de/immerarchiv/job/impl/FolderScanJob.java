@@ -101,11 +101,6 @@ public class FolderScanJob implements Job {
 
 
 	@Override
-	public void finish() {
-		//NOP
-	}
-
-	@Override
 	public String toString() {
 		return "FolderScanJob [folderlist=" + folderQueue.size() + "]";	
 	}

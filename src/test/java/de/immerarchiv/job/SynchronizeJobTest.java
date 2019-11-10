@@ -108,7 +108,6 @@ public class SynchronizeJobTest {
 		job.init();
 		while(job.next())
 			System.out.println(job);
-		job.finish();
 		
 		List<Job> nextJobs = job.getNext();
 		assertEquals(3,nextJobs.size());
