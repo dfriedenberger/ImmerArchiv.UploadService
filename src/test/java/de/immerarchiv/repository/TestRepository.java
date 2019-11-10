@@ -55,6 +55,21 @@ public class TestRepository {
 
 	@Ignore
 	@Test
+	public void testCreateBagitWithSpecialChars() throws IOException, GeneralSecurityException, ParseException {
+
+		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
+		RepositoryConfig repo = config.repositories.get(0);
+		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
+		
+		BagItInfo info = new BagItInfo();
+		info.setDescription("test äüö");
+		String bagItId = service.create("4711",info);
+		System.out.println(bagItId);
+	
+	}
+	
+	@Ignore
+	@Test
 	public void testUploadFile() throws IOException, GeneralSecurityException
 	{
 
@@ -74,6 +89,7 @@ public class TestRepository {
 		
 		
 	}
+	
 	
 	@Ignore
 	@Test

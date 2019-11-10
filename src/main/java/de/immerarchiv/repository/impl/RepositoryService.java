@@ -116,7 +116,7 @@ public class RepositoryService implements MetaDataKeys {
 			logger.info(response.getStatusLine());
 			// Display response
 			HttpEntity entity = response.getEntity();
-			String body = EntityUtils.toString(entity);
+			String body = EntityUtils.toString(entity,"UTF-8");
 
 			logger.info("Response {}", body);
 
@@ -196,8 +196,8 @@ public class RepositoryService implements MetaDataKeys {
 		String data = mapper.writeValueAsString(req);
 		logger.info("Request {}", data);
 
-		StringEntity input = new StringEntity(data);
-		input.setContentType("application/json");
+		StringEntity input = new StringEntity(data,"UTF-8");
+		input.setContentType("application/json;charset=UTF-8");
 		httppost.setEntity(input);
 
 		CloseableHttpResponse response = execute(httppost);
@@ -209,7 +209,7 @@ public class RepositoryService implements MetaDataKeys {
 
 			// Display response
 			HttpEntity entity = response.getEntity();
-			String body = EntityUtils.toString(entity);
+			String body = EntityUtils.toString(entity,"UTF-8");
 
 			logger.info("Response {}", body);
 
@@ -258,7 +258,7 @@ public class RepositoryService implements MetaDataKeys {
 
 			// Display response
 			HttpEntity entity = response.getEntity();
-			String body = EntityUtils.toString(entity);
+			String body = EntityUtils.toString(entity,"UTF-8");
 
 			logger.info("Response {}", body);
 
@@ -287,8 +287,8 @@ public class RepositoryService implements MetaDataKeys {
 		String data = mapper.writeValueAsString(req);
 		logger.info("Request {}", data);
 
-		StringEntity input = new StringEntity(data);
-		input.setContentType("application/json");
+		StringEntity input = new StringEntity(data,"UTF-8");
+		input.setContentType("application/json;charset=UTF-8");
 		httppost.setEntity(input);
 
 		CloseableHttpResponse response = execute(httppost);
