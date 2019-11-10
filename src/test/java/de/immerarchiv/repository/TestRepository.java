@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Ignore;
@@ -21,6 +22,7 @@ import de.immerarchiv.app.RepositoryConfig;
 import de.immerarchiv.repository.impl.MetaDataList;
 import de.immerarchiv.repository.impl.RepositoryService;
 import de.immerarchiv.repository.model.BagItInfo;
+import de.immerarchiv.repository.model.FileInfo;
 
 public class TestRepository {
 
@@ -103,6 +105,25 @@ public class TestRepository {
 		
 		
 		System.out.println(bagIts);
+
+		
+	}
+	
+	@Ignore
+	@Test
+	public void testListBagit() throws IOException, GeneralSecurityException, ParseException
+	{
+		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
+		RepositoryConfig repo = config.repositories.get(0);
+		
+		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
+		
+		List<FileInfo> content = service.resolveBagit("123456");
+		
+		for(FileInfo info : content)
+			System.out.println(info.name);
+
+		System.out.println(content.size());
 
 		
 	}
