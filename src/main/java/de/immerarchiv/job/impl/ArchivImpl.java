@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.OptionalDouble;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -31,10 +31,13 @@ public class ArchivImpl implements Archiv {
 	private final FolderFileComparerService comparerService;
 	private final NameService nameService;
 
-	public ArchivImpl(String[] repositories,FolderFileComparerService comparerService, NameService nameService) {
+	private final Function<Map<BagIt,Double>,List<BagIt>> bestBagItsStrategy;
+
+	public ArchivImpl(String[] repositories,FolderFileComparerService comparerService, NameService nameService,Function<Map<BagIt,Double>,List<BagIt>> bestBagItsStrategy) {
 		this.repositories = repositories;
 		this.comparerService = comparerService;
 		this.nameService = nameService;
+		this.bestBagItsStrategy = bestBagItsStrategy;
 	}
 
 	@Override
@@ -61,7 +64,6 @@ public class ArchivImpl implements Archiv {
 	@Override
 	public List<BagIt> findBagits(Folder folder,List<FolderFile> files) throws DifferentBagItsException {
 
-		List<BagIt> candidates = new ArrayList<>();
 		Map<BagIt,Double> candidatesMatching = new HashMap<>();
 
 		for(BagIt bagit : bagIts.keySet())
@@ -70,32 +72,20 @@ public class ArchivImpl implements Archiv {
 			double matching = comparerService.isSameFolder(files,bagItFiles);
 			if(matching > 0.0)
 			{
-				candidates.add(bagit);
 				candidatesMatching.put(bagit,matching);
+				logger.trace("candidate {} {}",bagit,matching);
 			}
 		}
 		
+		
+		//Find best candidates
+		List<BagIt> candidates = bestBagItsStrategy.apply(candidatesMatching);
+		
+		logger.trace("best {}",candidates);;
+
 		//Check
 		List<String> bagitIds = candidates.stream().map(b -> b.getId()).distinct().collect(Collectors.toList());
-		
-		//select folder with best matching
-		if(bagitIds.size() > 1)
-		{
-			List<String> bestMatching = candidatesMatching.entrySet().stream().filter(e -> e.getValue() > 0.1)
-				.map(e -> e.getKey().getId()).distinct().collect(Collectors.toList());
-			
-			OptionalDouble min = candidatesMatching.entrySet().stream().filter(e -> e.getValue() > 0.1)
-				.mapToDouble(e -> e.getValue()).min();
-			
-			if(bestMatching.size() == 1 && min.isPresent() && min.getAsDouble() >= 0.9)
-			{
-				bagitIds = bestMatching;
-				final String id = bagitIds.get(0);
-				candidates = candidates.stream().filter(b -> b.getId().equals(id)).collect(Collectors.toList());
-			}
-		}
-			
-			
+	
 		
 		switch(bagitIds.size())
 		{

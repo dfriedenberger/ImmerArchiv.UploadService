@@ -4,11 +4,16 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -30,6 +35,12 @@ public class ArchivImplTest {
 
 	@Mock 
 	NameService nameService;
+
+	@Mock
+	Function<Map<BagIt, Double>, List<BagIt>> bestStrategy;
+	
+	@Captor
+	private ArgumentCaptor<Map<BagIt, Double>> captor;
 	
 	@Before
     public void init(){
@@ -53,7 +64,7 @@ public class ArchivImplTest {
 	@Test
 	public void testFindBagitsAll() throws DifferentBagItsException {
 		
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 		
 		BagIt bagit = new BagIt();
 		bagit.setRepo("repo2");
@@ -96,57 +107,21 @@ public class ArchivImplTest {
 		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(0.0);
 
 		
-		List<BagIt> bagits = archiv.findBagits(null,files);
 		
-		assertEquals(2, bagits.size());
-		assertEquals("repo1",bagits.get(0).getRepo());
-		assertEquals("bagitid",bagits.get(0).getId());
-		assertEquals("repo2",bagits.get(1).getRepo());
-		assertEquals("bagitid",bagits.get(1).getId());
-		
-		assertEquals(2,archiv.selectBagItsForRepository("repo1").size());
-		assertEquals(1,archiv.selectBagItsForRepository("repo2").size());
-	}
+		List<BagIt> bagitsResult = new ArrayList<>();
+		bagitsResult.add(bagit);
+		bagitsResult.add(bagit2);
 
-	@Test
-	public void testFindBagitsBest() throws DifferentBagItsException {
-		
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
-		
-		BagIt bagit = new BagIt();
-		bagit.setRepo("repo2");
-		bagit.setId("bagitid");
-		bagit.setDescription("bagit 1");
-
-		bagit.setFiles(0);
-		bagit.setLastModified(0);
-
-		List<FolderFile> bagItFiles = createBagitFiles("ab");
-		archiv.addBagIt(bagit);
-		archiv.addFile(bagit,bagItFiles);
-		
-		BagIt bagit2 = new BagIt();
-		bagit2.setRepo("repo1");
-		bagit2.setId("bagitid1");
-		bagit2.setDescription("bagit 1a");
-		bagit2.setFiles(0);
-		bagit2.setLastModified(0);
-
-		List<FolderFile> bagItFiles2 = createBagitFiles("a");
-		archiv.addBagIt(bagit2);
-		archiv.addFile(bagit2,bagItFiles2);
-		
-		
-
-		
-		List<FolderFile> files = new ArrayList<FolderFile>();
-		
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(0.9);
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles2))).thenReturn(0.1); 
-
+		when(bestStrategy.apply(captor.capture())).thenReturn(bagitsResult);
 		
 		List<BagIt> bagits = archiv.findBagits(null,files);
 		
+		
+		Map<BagIt, Double> candidates = captor.getValue();
+		assertEquals(2, candidates.size());
+		assertEquals(0.1,candidates.get(bagit),0.0);
+		assertEquals(0.1,candidates.get(bagit2),0.0);
+
 		assertEquals(2, bagits.size());
 		assertEquals("repo2",bagits.get(0).getRepo());
 		assertEquals("bagitid",bagits.get(0).getId());
@@ -157,13 +132,11 @@ public class ArchivImplTest {
 		assertEquals(1,archiv.selectBagItsForRepository("repo2").size());
 	}
 
-	
-
 
 	@Test
 	public void testFindBagitsAndCompleteWithSameId() throws DifferentBagItsException {
 		
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 		
 		BagIt bagit = new BagIt();
 		bagit.setRepo("repo2");
@@ -204,11 +177,21 @@ public class ArchivImplTest {
 		
 
 		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(1.0);
-		when(comparerService.isSameFolder(same(files) , eq(bagItFiles2))).thenReturn(0.0); //e.g if is empty matcher failed
+		when(comparerService.isSameFolder(same(files) , eq(bagItFiles2))).thenReturn(0.0); //e.g falls bagit noch leer ist
 		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(0.0);
 		
+		List<BagIt> bagitsResult = new ArrayList<>();
+		bagitsResult.add(bagit);
+
+		when(bestStrategy.apply(captor.capture())).thenReturn(bagitsResult);
 		
 		List<BagIt> bagits = archiv.findBagits(null,files);
+		
+		
+		Map<BagIt, Double> candidates = captor.getValue();
+		assertEquals(1, candidates.size());
+		assertEquals(1.0,candidates.get(bagit),0.0);
+		
 		
 		assertEquals(2, bagits.size());
 		
@@ -224,7 +207,7 @@ public class ArchivImplTest {
 	@Test
 	public void testFindBagitsAndCompleteWithNewBagits() throws DifferentBagItsException {
 		
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 		
 		BagIt bagit = new BagIt();
 		bagit.setRepo("repo2");
@@ -255,8 +238,17 @@ public class ArchivImplTest {
 		when(comparerService.isSameFolder(same(files) , eq(bagItFiles))).thenReturn(1.0);
 		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(0.0);
 		
+		List<BagIt> bagitsResult = new ArrayList<>();
+		bagitsResult.add(bagit);
+
+		when(bestStrategy.apply(captor.capture())).thenReturn(bagitsResult);
 		
 		List<BagIt> bagits = archiv.findBagits(null,files);
+		
+		
+		Map<BagIt, Double> candidates = captor.getValue();
+		assertEquals(1, candidates.size());
+		assertEquals(1.0,candidates.get(bagit),0.0);
 		
 		assertEquals(2, bagits.size());
 		
@@ -273,7 +265,7 @@ public class ArchivImplTest {
 	@Test
 	public void testFindBagitsAndCreateNewBagits() throws DifferentBagItsException {
 		
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 				
 		BagIt bagit3 = new BagIt();
 		bagit3.setRepo("repo1");
@@ -288,6 +280,8 @@ public class ArchivImplTest {
 		
 		List<FolderFile> files = new ArrayList<FolderFile>();
 	
+		List<BagIt> bagitsResult = new ArrayList<>();
+		when(bestStrategy.apply(captor.capture())).thenReturn(bagitsResult);
 		
 		when(comparerService.isSameFolder(same(files) , eq(bagItFiles3))).thenReturn(0.0);
 
@@ -296,6 +290,12 @@ public class ArchivImplTest {
 		
 		
 		List<BagIt> bagits = archiv.findBagits(folder,files);
+		
+		
+		Map<BagIt, Double> candidates = captor.getValue();
+		assertEquals(0, candidates.size());
+		
+		
 		
 		assertEquals(2, bagits.size());
 		
@@ -312,12 +312,13 @@ public class ArchivImplTest {
 
 	}
 	
+
 	
 
 	@Test
 	public void testFileExists() throws WrongCheckSumException, WrongFilenameException
 	{
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 		
 		BagIt bagIt = new BagIt();
 		bagIt.setRepo("repo1");
@@ -358,7 +359,7 @@ public class ArchivImplTest {
 	@Test(expected = WrongCheckSumException.class)
 	public void testFileExistsWithWrongCheckSum() throws WrongCheckSumException, WrongFilenameException
 	{
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 		
 		BagIt bagIt = new BagIt();
 		bagIt.setRepo("repo1");
@@ -394,7 +395,7 @@ public class ArchivImplTest {
 	@Test(expected = WrongFilenameException.class)
 	public void testFileExistsWithWrongName() throws WrongFilenameException, WrongCheckSumException
 	{
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 		
 		BagIt bagIt = new BagIt();
 		bagIt.setRepo("repo1");
@@ -430,7 +431,7 @@ public class ArchivImplTest {
 	@Test
 	public void testAddBagIt()
 	{
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 		
 		BagIt bagIt = new BagIt();
 		bagIt.setRepo("repo1");
@@ -444,7 +445,7 @@ public class ArchivImplTest {
 	@Test
 	public void testSelectBagItsForRepository()
 	{
-		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService);
+		Archiv archiv = new ArchivImpl(new String[]{ "repo1", "repo2"},comparerService,nameService,bestStrategy);
 		
 		BagIt bagit = new BagIt();
 		bagit.setRepo("repo2");

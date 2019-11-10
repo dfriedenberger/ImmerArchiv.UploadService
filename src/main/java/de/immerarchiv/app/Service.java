@@ -17,6 +17,7 @@ import de.frittenburger.web.impl.WebServerImpl;
 import de.frittenburger.web.interfaces.WebServer;
 import de.immerarchiv.job.impl.ApplicationState;
 import de.immerarchiv.job.impl.ArchivImpl;
+import de.immerarchiv.job.impl.BestBagitStrategy;
 import de.immerarchiv.job.impl.FileIgnoreFilterImpl;
 import de.immerarchiv.job.impl.FolderFileComparerServiceImpl;
 import de.immerarchiv.job.impl.FolderScanJob;
@@ -48,6 +49,7 @@ public class Service {
 	private final static MD5Service md5service = new MD5ServiceImpl();
 	private final static FolderFileComparerService comparerService = new FolderFileComparerServiceImpl();
 	private final static NameService nameService = new NameServiceImpl();
+	private final static BestBagitStrategy bestBagitStrategy = new BestBagitStrategy();
 	private static MD5Cache md5cache = null;
 	private static BagItCache bagItCache = null;
 
@@ -170,7 +172,7 @@ public class Service {
 				
 				String[] repositories = repositoryServices.stream().map(rs -> rs.getId()).collect(Collectors.toList()).toArray(new String[0]);
 				
-				Archiv archiv = new ArchivImpl(repositories, comparerService,nameService);
+				Archiv archiv = new ArchivImpl(repositories, comparerService,nameService,bestBagitStrategy);
 				FolderSystem folderSystem = new FolderSystemImpl();
 				FileSystemState fileSystemState = new FileSystemState();
 				FileIgnoreFilter fileIgnoreFilter = new FileIgnoreFilterImpl();
