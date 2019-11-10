@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import de.immerarchiv.job.impl.FileIgnoreFilterImpl;
 import de.immerarchiv.job.impl.FolderScanJob;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
@@ -60,7 +61,7 @@ public class FolderScanJobTest {
 		    }
 		  });
 		
-		Job job = new FolderScanJob(null, nameService, null, folderSystem,new FileSystemState());
+		Job job = new FolderScanJob(null, nameService, null, folderSystem,new FileIgnoreFilterImpl(),new FileSystemState());
 		
 		job.init();
 		while(job.next())
@@ -93,7 +94,7 @@ public class FolderScanJobTest {
 		when(folderSystem.getFolders()).thenReturn(folders);
 		when(folderSystem.selectFiles(folder)).thenReturn(files1);
 
-		Job job = new FolderScanJob(null, nameService, null, folderSystem,new FileSystemState());
+		Job job = new FolderScanJob(null, nameService, null, folderSystem,null,new FileSystemState());
 
 		assertEquals(1,job.getNext().size());
 	}

@@ -17,12 +17,14 @@ import de.frittenburger.web.impl.WebServerImpl;
 import de.frittenburger.web.interfaces.WebServer;
 import de.immerarchiv.job.impl.ApplicationState;
 import de.immerarchiv.job.impl.ArchivImpl;
+import de.immerarchiv.job.impl.FileIgnoreFilterImpl;
 import de.immerarchiv.job.impl.FolderFileComparerServiceImpl;
 import de.immerarchiv.job.impl.FolderScanJob;
 import de.immerarchiv.job.impl.FolderSystemImpl;
 import de.immerarchiv.job.impl.RepositoryScanJob;
 import de.immerarchiv.job.impl.SynchronizeJob;
 import de.immerarchiv.job.interfaces.Archiv;
+import de.immerarchiv.job.interfaces.FileIgnoreFilter;
 import de.immerarchiv.job.interfaces.FolderFileComparerService;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
@@ -171,14 +173,20 @@ public class Service {
 				Archiv archiv = new ArchivImpl(repositories, comparerService,nameService);
 				FolderSystem folderSystem = new FolderSystemImpl();
 				FileSystemState fileSystemState = new FileSystemState();
-
+				FileIgnoreFilter fileIgnoreFilter = new FileIgnoreFilterImpl();
+				
+				for(String pattern : config.ignore)
+				{
+					fileIgnoreFilter.addPattern(pattern);
+				}
+				
 				for(PathConfig pathConfig : config.pathes)
 				{
 					Folder folder = new Folder();
 					folder.setPath(pathConfig.path);
 					folderSystem.addFolder(folder);
 				}
-				jobs.add(new FolderScanJob(md5service, nameService, md5cache, folderSystem,fileSystemState));
+				jobs.add(new FolderScanJob(md5service, nameService, md5cache, folderSystem,fileIgnoreFilter,fileSystemState));
 
 				for(RepositoryService respositoryService :repositoryServices)
 				{

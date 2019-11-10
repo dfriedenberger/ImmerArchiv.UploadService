@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import de.immerarchiv.job.impl.FileScanJob;
 import de.immerarchiv.job.interfaces.Job;
-import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.util.interfaces.MD5Cache;
 import de.immerarchiv.util.interfaces.MD5Service;
@@ -37,7 +36,7 @@ public class FileScanJobTest {
 		folderfile.setFile(file);
 		files.add(folderfile);
 		
-		Job job = new FileScanJob(md5service,md5cache,files,new FileSystemState());		
+		Job job = new FileScanJob(md5service,md5cache,files);		
 				
 		job.init();
 		while(job.next())
@@ -73,7 +72,7 @@ public class FileScanJobTest {
 		folderfile.setFile(file);
 		files.add(folderfile);
 		
-		Job job = new FileScanJob(md5service,md5cache,files,new FileSystemState());		
+		Job job = new FileScanJob(md5service,md5cache,files);		
 		
 		
 		job.init();

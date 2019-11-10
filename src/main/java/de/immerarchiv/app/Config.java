@@ -11,6 +11,8 @@ public class Config {
 	public List<RepositoryConfig> repositories;
 	
 	public List<PathConfig> pathes;
+
+	public List<String> ignore;
 	
 	public static Config defaultConfig() {
 		
@@ -32,6 +34,9 @@ public class Config {
 		path.path = "D:/Stuff";
 		path.pattern = "*.pdf,*.ico";
 		
+		//global pattern
+		config.ignore = new ArrayList<String>();
+		config.ignore.add("Thumbs.db");
 		return config;
 	}
 

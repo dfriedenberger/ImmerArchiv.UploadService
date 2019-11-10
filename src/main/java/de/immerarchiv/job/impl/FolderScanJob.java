@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.immerarchiv.job.interfaces.FileIgnoreFilter;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.FileState;
@@ -32,7 +33,9 @@ public class FolderScanJob implements Job {
 	
 	private final FolderSystem folderSystem;
 	private final List<Folder> folderQueue;
+	private final FileIgnoreFilter fileIgnoreFilter;
 	private final FileSystemState fileSystemState;
+
 
 
 	@Override
@@ -45,13 +48,14 @@ public class FolderScanJob implements Job {
 		this.folderQueue.addAll(folderSystem.getFolders());
 	}
 	
-	public FolderScanJob(MD5Service md5service,NameService nameService,MD5Cache md5cache,FolderSystem folderSystem,FileSystemState fileSystemState)
+	public FolderScanJob(MD5Service md5service,NameService nameService,MD5Cache md5cache,FolderSystem folderSystem,FileIgnoreFilter fileIgnoreFilter,FileSystemState fileSystemState)
 	{
 		this.md5service = md5service;
 		this.nameService = nameService;
 		this.md5cache = md5cache;
 		this.folderSystem = folderSystem;
 		this.folderQueue = new ArrayList<>();
+		this.fileIgnoreFilter = fileIgnoreFilter;
 		this.fileSystemState = fileSystemState;
 	}
 
@@ -71,18 +75,12 @@ public class FolderScanJob implements Job {
 		if(folders == null)
 		{
 			logger.warn("can not list files for {}",folder);
-			List<FileState> states = new ArrayList<>();
-			FileState state = new FileState();
-			state.setState("access denied");
-			fileSystemState.put(dir.getAbsolutePath(), states);		
+			fileSystemState.setState(dir, "access denied");		
 		}
 		else if(folders.length == 0)
 		{
 			logger.warn("empty folder {}",folder);
-			List<FileState> states = new ArrayList<>();
-			FileState state = new FileState();
-			state.setState("empty folder");
-			fileSystemState.put(dir.getAbsolutePath(), states);	
+			fileSystemState.setState(dir, "empty folder");	
 		}
 		else
 		{
@@ -99,6 +97,22 @@ public class FolderScanJob implements Job {
 				
 				if(file.isFile())
 				{
+					if(fileIgnoreFilter.ignore(file))
+					{
+						logger.info("Ignore File {}",file);
+						fileSystemState.setState(file, "ignore");
+						continue;
+					}
+					
+					if(file.length() == 0)
+					{
+						logger.warn("Empty File {}",file);
+						fileSystemState.setState(file, "empty file");
+						continue;
+					}
+					
+					
+					
 					FolderFile folderFile = new FolderFile();
 					
 					folderFile.setSafeName(nameService.createSafeName(file));
@@ -138,7 +152,7 @@ public class FolderScanJob implements Job {
 	    		
 	    		if((size > SIZE100MB) || (jobFiles.size() >= 200) || (i + 1 == files.size()))
 	    		{
-	    			jobs.add(new FileScanJob(md5service,md5cache,jobFiles,fileSystemState));
+	    			jobs.add(new FileScanJob(md5service,md5cache,jobFiles));
 	    			jobFiles = new ArrayList<>();
 	    			size = 0;
 	    		}
