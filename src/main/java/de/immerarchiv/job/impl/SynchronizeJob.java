@@ -15,6 +15,8 @@ import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
 import de.immerarchiv.job.model.DifferentBagItsException;
+import de.immerarchiv.job.model.FileState;
+import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.Priority;
@@ -29,6 +31,8 @@ public class SynchronizeJob implements Job  {
 
 	private final List<Folder> queue;
 	private final Archiv archiv;
+	private final FileSystemState fileSystemState;
+
 	private final FolderSystem folderSystem;
 	private final List<RepositoryService> repositoryServices;
 
@@ -37,15 +41,13 @@ public class SynchronizeJob implements Job  {
 	private Set<BagIt> existingBagIts = new HashSet<>();
 
 	
-	public SynchronizeJob(List<RepositoryService> repositoryServices,Archiv archiv,FolderSystem folderSystem)
+	public SynchronizeJob(List<RepositoryService> repositoryServices,Archiv archiv,FolderSystem folderSystem,FileSystemState fileSystemState)
 	{
 		this.repositoryServices = repositoryServices;
 		this.archiv = archiv;
 		this.folderSystem = folderSystem;
 		this.queue = new ArrayList<>();
-		
-		
-		
+		this.fileSystemState = fileSystemState;
 	}
 	
 	@Override
@@ -75,11 +77,20 @@ public class SynchronizeJob implements Job  {
 			try{
 				List<BagIt> bagIts = archiv.findBagits(folder,files);
 			
+			
+
 				// check for each File, where file exists 
 				for(FolderFile file : files)
 				{
+					List<FileState> states = new ArrayList<>();
+					fileSystemState.put(file.getFile().getAbsolutePath(),states);
+					
+					
 					for(BagIt bagIt : bagIts)
 					{
+						FileState state = new FileState();
+						states.add(state);
+						state.setBagIt(bagIt);
 						try
 						{
 							if(!archiv.fileExists(bagIt,file))
@@ -93,21 +104,27 @@ public class SynchronizeJob implements Job  {
 								{
 									throw new RuntimeException("Could not select single service for "+bagIt);
 								}
-								
 						
-								
 								nextJobs.add(new UploadJob(repos.get(0),new NameServiceImpl(),bagIt,file,existingBagIts));
+								state.setState("upload job");
+							}
+							else
+							{
+								state.setState("exists");
 							}
 						}
 						catch (WrongCheckSumException e)
 						{
-							logger.error("WrongCheckSumException {}, try rename file",file.getFile());
+							state.setState("other checksum");
+							logger.warn("WrongCheckSumException {}, try rename file or create next version",file.getFile());
 						}
 						catch (WrongFilenameException e)
 						{
+							state.setState("other filename");
 							logger.warn("WrongFilenameException {} , file exists with {}",file.getFile(),e.getMessage());
 						}
 					}
+					
 					
 					
 					
@@ -118,13 +135,7 @@ public class SynchronizeJob implements Job  {
 				logger.error("DifferentBagItsException {}",e.getMessage());
 			}
 		}
-		else
-		{
-			logger.warn("folder {} is empty",folder.getPath());
-		}
-		
-		
-		
+			
 		//check if is in bagit
 		
 		return !queue.isEmpty();

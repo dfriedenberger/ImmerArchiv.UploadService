@@ -26,6 +26,7 @@ import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.FolderFileComparerService;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
+import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.repository.impl.RepositoryService;
 import de.immerarchiv.util.impl.BagItCacheImpl;
@@ -169,26 +170,29 @@ public class Service {
 				
 				Archiv archiv = new ArchivImpl(repositories, comparerService,nameService);
 				FolderSystem folderSystem = new FolderSystemImpl();
-				
+				FileSystemState fileSystemState = new FileSystemState();
+
 				for(PathConfig pathConfig : config.pathes)
 				{
 					Folder folder = new Folder();
 					folder.setPath(pathConfig.path);
 					folderSystem.addFolder(folder);
 				}
-				jobs.add(new FolderScanJob(md5service, nameService, md5cache, folderSystem));
+				jobs.add(new FolderScanJob(md5service, nameService, md5cache, folderSystem,fileSystemState));
 
 				for(RepositoryService respositoryService :repositoryServices)
 				{
 					jobs.add(new RepositoryScanJob(archiv,bagItCache, respositoryService));
 				}
 				
-				jobs.add(new SynchronizeJob(repositoryServices,archiv, folderSystem));
+				jobs.add(new SynchronizeJob(repositoryServices,archiv, folderSystem,fileSystemState));
 				
 				
 				nextscann = new Date().getTime() + 1000 * 60 * 60;
 				ApplicationState.set("jobs-nextscann",new Date(nextscann));
 				ApplicationState.set("config-content",config);
+				ApplicationState.setFileSystemState(fileSystemState);
+
 			}
 			
 			

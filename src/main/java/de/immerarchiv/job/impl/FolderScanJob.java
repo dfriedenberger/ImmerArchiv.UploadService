@@ -10,6 +10,8 @@ import org.apache.logging.log4j.Logger;
 
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
+import de.immerarchiv.job.model.FileState;
+import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.Priority;
@@ -30,7 +32,7 @@ public class FolderScanJob implements Job {
 	
 	private final FolderSystem folderSystem;
 	private final List<Folder> folderQueue;
-
+	private final FileSystemState fileSystemState;
 
 
 	@Override
@@ -43,13 +45,14 @@ public class FolderScanJob implements Job {
 		this.folderQueue.addAll(folderSystem.getFolders());
 	}
 	
-	public 	FolderScanJob(MD5Service md5service,NameService nameService,MD5Cache md5cache,FolderSystem folderSystem)
+	public FolderScanJob(MD5Service md5service,NameService nameService,MD5Cache md5cache,FolderSystem folderSystem,FileSystemState fileSystemState)
 	{
 		this.md5service = md5service;
 		this.nameService = nameService;
 		this.md5cache = md5cache;
 		this.folderSystem = folderSystem;
 		this.folderQueue = new ArrayList<>();
+		this.fileSystemState = fileSystemState;
 	}
 
 	@Override
@@ -67,14 +70,26 @@ public class FolderScanJob implements Job {
 		File[] folders = dir.listFiles();
 		if(folders == null)
 		{
-			logger.error("can not list files for {}",folder);
+			logger.warn("can not list files for {}",folder);
+			List<FileState> states = new ArrayList<>();
+			FileState state = new FileState();
+			state.setState("access denied");
+			fileSystemState.put(dir.getAbsolutePath(), states);		
+		}
+		else if(folders.length == 0)
+		{
+			logger.warn("empty folder {}",folder);
+			List<FileState> states = new ArrayList<>();
+			FileState state = new FileState();
+			state.setState("empty folder");
+			fileSystemState.put(dir.getAbsolutePath(), states);	
 		}
 		else
 		{
 			for(File file : folders)
 			{
 				if(file.isDirectory())
-				{
+				{					
 					Folder f = new Folder();
 					f.setPath(file.getAbsolutePath());
 					folderQueue.add(f);
@@ -123,7 +138,7 @@ public class FolderScanJob implements Job {
 	    		
 	    		if((size > SIZE100MB) || (jobFiles.size() >= 200) || (i + 1 == files.size()))
 	    		{
-	    			jobs.add(new FileScanJob(md5service,md5cache,jobFiles));
+	    			jobs.add(new FileScanJob(md5service,md5cache,jobFiles,fileSystemState));
 	    			jobFiles = new ArrayList<>();
 	    			size = 0;
 	    		}

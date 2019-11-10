@@ -4,10 +4,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.immerarchiv.job.model.FileSystemState;
+
 public class ApplicationState {
 
 	private static Map<String,Object> map = new HashMap<String,Object>();
-
+	private static FileSystemState fileSystemState = new FileSystemState();
 	public static void incr(String key) {
 
 		int v = (Integer)map.get(key);
@@ -32,5 +34,11 @@ public class ApplicationState {
 		return map;
 	}
 
+	public static void setFileSystemState(FileSystemState state) {
+		fileSystemState = state;
+	}
 
+	public static FileSystemState getFileSystemState() {
+		return fileSystemState;
+	}
 }

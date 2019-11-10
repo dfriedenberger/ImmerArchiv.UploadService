@@ -3,6 +3,7 @@ package de.immerarchiv.job;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
+import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.repository.impl.RepositoryService;
@@ -61,10 +63,12 @@ public class SynchronizeJobTest {
 		FolderFile file1 = new FolderFile();
 		file1.setSafeName("name1");
 		file1.setMd5("md5-1");
+		file1.setFile(new File("pathtofile/name1.txt"));
 
 		FolderFile file2 = new FolderFile();
 		file2.setSafeName("name2");
 		file2.setMd5("md5-2");
+		file2.setFile(new File("pathtofile/name2.txt"));
 
 		files1.add(file1);
 		files1.add(file2);
@@ -102,7 +106,8 @@ public class SynchronizeJobTest {
 		
 		
 		
-		Job job = new SynchronizeJob(repositoryServices,archiv,folderSystem);
+		FileSystemState fileSystemState = new FileSystemState();
+		Job job = new SynchronizeJob(repositoryServices,archiv,folderSystem,fileSystemState);
 		
 		
 		job.init();
@@ -111,6 +116,8 @@ public class SynchronizeJobTest {
 		
 		List<Job> nextJobs = job.getNext();
 		assertEquals(3,nextJobs.size());
+		assertEquals(2,fileSystemState.size());
+		
 	}
 
 }

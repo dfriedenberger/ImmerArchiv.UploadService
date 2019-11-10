@@ -2,12 +2,15 @@ package de.immerarchiv.job.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.immerarchiv.job.interfaces.Job;
+import de.immerarchiv.job.model.FileState;
+import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.job.model.Priority;
 import de.immerarchiv.util.interfaces.MD5Cache;
@@ -20,12 +23,14 @@ public class FileScanJob implements Job {
 	private final MD5Service md5service;
 	private final MD5Cache md5cache;
 	private final List<FolderFile> fileQueue;
+	private final FileSystemState fileSystemState;
 
-	public FileScanJob(MD5Service md5service,MD5Cache md5cache,List<FolderFile> files)
+	public FileScanJob(MD5Service md5service,MD5Cache md5cache,List<FolderFile> files,FileSystemState fileSystemState)
 	{
 		this.md5service = md5service;
 		this.md5cache = md5cache;
 		this.fileQueue = files;
+		this.fileSystemState = fileSystemState;
 	}
 	
 	
@@ -64,7 +69,13 @@ public class FileScanJob implements Job {
 		}
 		else
 		{
-			logger.error("Empty File {}",file);
+			logger.warn("Empty File {}",file);
+			
+			List<FileState> states = new ArrayList<>();
+			FileState state = new FileState();
+			state.setState("empty file");
+			fileSystemState.put(file.getAbsolutePath(), states);
+			
 		}
 		return !fileQueue.isEmpty();
 		

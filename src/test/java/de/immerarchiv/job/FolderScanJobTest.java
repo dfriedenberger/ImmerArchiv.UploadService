@@ -19,6 +19,7 @@ import org.mockito.stubbing.Answer;
 import de.immerarchiv.job.impl.FolderScanJob;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
+import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;
 import de.immerarchiv.util.interfaces.NameService;
@@ -59,7 +60,7 @@ public class FolderScanJobTest {
 		    }
 		  });
 		
-		Job job = new FolderScanJob(null, nameService, null, folderSystem);
+		Job job = new FolderScanJob(null, nameService, null, folderSystem,new FileSystemState());
 		
 		job.init();
 		while(job.next())
@@ -92,7 +93,7 @@ public class FolderScanJobTest {
 		when(folderSystem.getFolders()).thenReturn(folders);
 		when(folderSystem.selectFiles(folder)).thenReturn(files1);
 
-		Job job = new FolderScanJob(null, nameService, null, folderSystem);
+		Job job = new FolderScanJob(null, nameService, null, folderSystem,new FileSystemState());
 
 		assertEquals(1,job.getNext().size());
 	}
