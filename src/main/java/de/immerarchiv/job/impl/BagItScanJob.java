@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.immerarchiv.app.Service;
 import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;

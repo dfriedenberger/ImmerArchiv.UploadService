@@ -11,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 import de.immerarchiv.job.interfaces.FileIgnoreFilter;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
-import de.immerarchiv.job.model.FileState;
 import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.job.model.FolderFile;

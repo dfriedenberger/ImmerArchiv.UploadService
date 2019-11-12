@@ -1,8 +1,6 @@
 package de.immerarchiv.util.impl;
 
 import java.io.File;
-import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import de.immerarchiv.job.model.Folder;
