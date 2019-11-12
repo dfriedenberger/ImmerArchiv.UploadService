@@ -170,17 +170,23 @@ public class RepositoryService implements MetaDataKeys {
 		Timer timer = new Timer(true);
 		
 		timer.schedule(task, hardTimeout);
-		
-		
-		CloseableHttpClient httpclient = getHttpClient();
+		logger.trace("Schedule Timer");
 
-		logger.trace("Request {}",httpMethod);
-		CloseableHttpResponse response = httpclient.execute(httpMethod);
-		logger.trace("Response {}",response);
-		
-        timer.cancel();
-
-		return response;
+		try
+		{
+			CloseableHttpClient httpclient = getHttpClient();
+	
+			logger.trace("Request {}",httpMethod);
+			CloseableHttpResponse response = httpclient.execute(httpMethod);
+			logger.trace("Response {}",response);
+			
+			return response;
+		}
+		finally
+		{
+			timer.cancel();
+			logger.trace("Cancel Timer");
+		}
 		
 	}
 
