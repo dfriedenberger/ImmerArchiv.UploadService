@@ -17,6 +17,7 @@ import de.frittenburger.web.impl.WebServerImpl;
 import de.frittenburger.web.interfaces.WebServer;
 import de.immerarchiv.job.impl.ApplicationState;
 import de.immerarchiv.job.impl.ArchivImpl;
+import de.immerarchiv.job.impl.BagItScanJob;
 import de.immerarchiv.job.impl.BestBagitStrategy;
 import de.immerarchiv.job.impl.FileIgnoreFilterImpl;
 import de.immerarchiv.job.impl.FolderFileComparerServiceImpl;
@@ -119,25 +120,42 @@ public class Service {
 				{
 					if(currentJob.next())
 						continue;
+					
+					logger.info("finish job {}",currentJob);
+					List<Job> nextJobs = currentJob.getNext();
+					if(nextJobs != null)
+				    {
+						logger.info("add next jobs {}",nextJobs.size());
+				    	jobs.addAll(nextJobs);
+				    }
+					
 				} 
 				catch(Exception e)
 				{
 					logger.error("job failed {}",currentJob);
-
 					logger.error(e);
 					ApplicationState.incr("jobs-errors");
+					
+					//if job is relevant for synchronize, cancel queue and restart in 5 Minutes 
+					if((currentJob instanceof RepositoryScanJob)
+							||(currentJob instanceof BagItScanJob))
+					{
+						nextscann = new Date().getTime() + 1000 * 60 * 5;
+						jobs.clear();
+						logger.error("cancel all jobs and reshedule for {}",new Date(nextscann));
+						
+					}
 				}
 				
-				logger.info("finish job {}",currentJob);
-				List<Job> nextJobs = currentJob.getNext();
 				
-				if(nextJobs != null)
-			    {
-					logger.info("add next jobs {}",nextJobs.size());
-			    	jobs.addAll(nextJobs);
-			    }
 			   
 				currentJob = null;
+				
+				
+				
+				
+				
+				
 				
 			}
 			
