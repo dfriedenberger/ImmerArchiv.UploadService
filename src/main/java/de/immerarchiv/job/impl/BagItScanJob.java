@@ -5,6 +5,10 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import de.immerarchiv.app.Service;
 import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
@@ -16,7 +20,8 @@ import de.immerarchiv.util.interfaces.BagItCache;
 
 public class BagItScanJob implements Job {
 
-	
+	private final static Logger logger = LogManager.getLogger(BagItScanJob.class);
+
 	
 	private final RepositoryService repositoryService;
 	private final BagItCache bagItCache;
@@ -70,8 +75,16 @@ public class BagItScanJob implements Job {
 		
 		if(!fileinfo.CheckSumKey.toLowerCase().equals("md5"))
 			throw new RuntimeException("unknown checksum type "+fileinfo.CheckSumKey);
-		
-		folderFile.setSafeName(fileinfo.name);
+		try {
+			folderFile.setSafeName(fileinfo.name);
+		}
+		catch(IllegalArgumentException e)
+		{
+			logger.error(e);
+			String safeName = fileinfo.name.replaceAll("\\s", "_");
+			logger.error("Use new name \"{}\"",safeName);
+			folderFile.setSafeName(safeName);
+		}
 		folderFile.setMd5(fileinfo.CheckSumValue);
 
 		return folderFile;

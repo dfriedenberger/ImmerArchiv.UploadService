@@ -151,5 +151,47 @@ public class BagItScanJobTest {
 		
 	}
 	
-	
+	@Test
+	public void testBagitWithInvalidFilename() throws Exception {
+		
+				
+		List<BagIt> bagits = new ArrayList<>();
+
+		
+		
+		BagIt bagIt1 = new BagIt();
+		bagIt1.setRepo("1");
+		bagIt1.setId("29816067-f0f7-4f5c-9cfb-589e40311d23");
+		bagIt1.setFiles(0);
+		bagIt1.setLastModified(0);
+		bagits.add(bagIt1);
+		
+		
+		List<FileInfo> fileInfoList1 = new ArrayList<>();
+		FileInfo fileinfo1 = new FileInfo();
+		fileinfo1.CheckSumKey = "md5";
+		fileinfo1.name = "filename with spaces.txt";
+
+		fileInfoList1.add(fileinfo1);
+		
+		when(repositoryService.resolveBagit("29816067-f0f7-4f5c-9cfb-589e40311d23")).thenReturn(fileInfoList1);
+			
+		Job job = new BagItScanJob(repositoryService,bagItCache,archiv,bagits);
+		
+		   
+		when(bagItCache.get(bagIt1)).thenReturn(null);
+
+		job.init();
+
+		while(job.next())
+			System.out.println(job);
+		
+		verify(bagItCache).put(eq(bagIt1), anyObject());
+		verify(bagItCache).load();
+		
+		verify(archiv).addFile(eq(bagIt1), captor.capture());
+		assertEquals(1,captor.getValue().size());
+				
+	}
+
 }
