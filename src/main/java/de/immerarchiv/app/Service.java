@@ -118,6 +118,7 @@ public class Service {
 
 				try
 				{
+					
 					if(currentJob.next())
 						continue;
 					
@@ -141,6 +142,8 @@ public class Service {
 							||(currentJob instanceof BagItScanJob))
 					{
 						nextscann = new Date().getTime() + 1000 * 60 * 5;
+						ApplicationState.set("jobs-nextscann",new Date(nextscann));
+						
 						jobs.clear();
 						logger.error("cancel all jobs and reshedule for {}",new Date(nextscann));
 						
@@ -168,6 +171,7 @@ public class Service {
 				currentJob = jobs.remove();
 				logger.info("init job {}",currentJob);
 				currentJob.init();
+				
 				ApplicationState.set("jobs-current-start",new Date());
 				ApplicationState.set("jobs-current-step",0);
 				ApplicationState.set("jobs-current-name",currentJob.getClass().getSimpleName());

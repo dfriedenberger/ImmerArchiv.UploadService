@@ -1,0 +1,60 @@
+body {
+  padding-top: 5rem;
+}
+
+.header {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+
+
+
+.blink {
+  animation: blink-animation 3s steps(5, start) infinite;
+  -webkit-animation: blink-animation 3s steps(5, start) infinite;
+}
+
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+@-webkit-keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+
+.single_counter {
+  background: rgba(193 , 193 , 193 , 0.5);
+  color: #fff;
+  text-align: center;
+  padding-top: 28px;
+  padding-bottom: 28px;
+  margin-top: 18px;
+}
+
+.single_counter i {
+  font-size:36px;
+  margin-bottom: 18px;
+}
+
+#heart {
+  color: #cc3300;
+}
+.alive {
+  color: 	#339900 !important;
+}
+
+.active {
+  background: rgba(128 , 128 , 128 , 0.5) !important;
+}
+
+.warning {
+  color: #ffcc00 !important;
+}
+
+.ok {
+  color: 	#339900 !important;
+}

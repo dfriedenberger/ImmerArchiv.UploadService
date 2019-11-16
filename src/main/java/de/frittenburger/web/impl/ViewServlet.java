@@ -2,7 +2,6 @@ package de.frittenburger.web.impl;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -17,7 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.immerarchiv.job.impl.ApplicationState;
-import de.immerarchiv.job.model.FileState;
 
 
 
@@ -51,16 +49,7 @@ public class ViewServlet extends HttpServlet {
 			return;
 		}
 		
-		if (pathInfo.equals("/files")) {
-			
-			Map<String, List<FileState>> resp = ApplicationState.getFileSystemState();
-
-			ObjectMapper mapper = new ObjectMapper();
-			response.setStatus(HttpServletResponse.SC_OK);
-			response.setContentType("application/json");			
-			response.getWriter().print(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(resp));
-			return;
-		}
+		
 		
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType("text/html");		
