@@ -8,6 +8,7 @@ import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -24,12 +25,28 @@ import de.immerarchiv.repository.model.FileInfo;
 
 public class TestRepository {
 
+	
+	private RepositoryConfig getRepositoryConfig() throws IOException
+	{
+		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
+		RepositoryConfig repo = config.repositories.get(0);
+		
+		/*
+		 	RepositoryConfig repo = new RepositoryConfig();
+			repo.name = "xxx";
+			repo.url = "https://xxx.xxx.xx";
+			repo.token = "xxx";
+		*/
+		
+		return repo;
+	}
+	
+	
 	@Ignore
 	@Test
 	public void testConnect() throws IOException, GeneralSecurityException, ParseException {
 
-		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
-		RepositoryConfig repo = config.repositories.get(0);
+		RepositoryConfig repo = getRepositoryConfig();
 		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
 		
 		
@@ -42,8 +59,8 @@ public class TestRepository {
 	@Test
 	public void testCreateBagit() throws IOException, GeneralSecurityException, ParseException {
 
-		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
-		RepositoryConfig repo = config.repositories.get(0);
+		RepositoryConfig repo = getRepositoryConfig();
+
 		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
 		
 		BagItInfo info = new BagItInfo();
@@ -57,8 +74,8 @@ public class TestRepository {
 	@Test
 	public void testCreateBagitWithSpecialChars() throws IOException, GeneralSecurityException, ParseException {
 
-		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
-		RepositoryConfig repo = config.repositories.get(0);
+		RepositoryConfig repo = getRepositoryConfig();
+
 		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
 		
 		BagItInfo info = new BagItInfo();
@@ -73,8 +90,8 @@ public class TestRepository {
 	public void testUploadFile() throws IOException, GeneralSecurityException
 	{
 
-		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
-		RepositoryConfig repo = config.repositories.get(0);
+		RepositoryConfig repo = getRepositoryConfig();
+
 		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
 		
 		
@@ -95,15 +112,16 @@ public class TestRepository {
 	@Test
 	public void testListAllBagits() throws IOException, GeneralSecurityException, ParseException
 	{
-		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
-		RepositoryConfig repo = config.repositories.get(0);
+		RepositoryConfig repo = getRepositoryConfig();
+
 		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
 		
-		Map<String, MetaDataList> bagIts = service.resolveBagits(0, 10);
+		Map<String, MetaDataList> bagIts = service.resolveBagits(500, 100);
 		
-		
-		System.out.println(bagIts);
-
+		for(Entry<String, MetaDataList> e : bagIts.entrySet())
+		{
+			System.out.println(e);
+		}
 		
 	}
 	
@@ -111,12 +129,11 @@ public class TestRepository {
 	@Test
 	public void testListBagit() throws IOException, GeneralSecurityException, ParseException
 	{
-		Config config = new ObjectMapper(new YAMLFactory()).readValue(new File("config.yml"),Config.class);
-		RepositoryConfig repo = config.repositories.get(0);
+		RepositoryConfig repo = getRepositoryConfig();
 		
 		RepositoryService service = new RepositoryService("id",repo.url,repo.name, repo.token);
 		
-		List<FileInfo> content = service.resolveBagit("123456");
+		List<FileInfo> content = service.resolveBagit("7b646eab-d8df-409d-9819-a3b63edcc4e1");
 		
 		for(FileInfo info : content)
 			System.out.println(info.name);

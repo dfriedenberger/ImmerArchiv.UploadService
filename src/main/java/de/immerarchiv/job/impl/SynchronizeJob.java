@@ -2,8 +2,10 @@ package de.immerarchiv.job.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ public class SynchronizeJob implements Job  {
 
 	private Set<BagIt> existingBagIts = new HashSet<>();
 
+	private Map<BagIt,Set<FolderFile>> uploadBagItMap = new HashMap<>();
 	
 	public SynchronizeJob(List<RepositoryService> repositoryServices,Archiv archiv,FolderSystem folderSystem,FileSystemState fileSystemState)
 	{
@@ -105,6 +108,16 @@ public class SynchronizeJob implements Job  {
 									throw new RuntimeException("Could not select single service for "+bagIt);
 								}
 						
+								
+								if(!uploadBagItMap.containsKey(bagIt)) uploadBagItMap.put(bagIt, new HashSet<>());
+									
+								if(uploadBagItMap.get(bagIt).contains(file))
+								{
+									state.setState("duplicate in bagit");
+									logger.warn("UploadJob exists file {} to bagIt {}",file,bagIt);
+									continue;
+								}
+								uploadBagItMap.get(bagIt).add(file);
 								nextJobs.add(new UploadJob(repos.get(0),new NameServiceImpl(),bagIt,file,existingBagIts));
 								state.setState("upload job");
 							}
