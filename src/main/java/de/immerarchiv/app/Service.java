@@ -34,10 +34,15 @@ import de.immerarchiv.job.model.FileSystemState;
 import de.immerarchiv.job.model.Folder;
 import de.immerarchiv.repository.impl.RepositoryService;
 import de.immerarchiv.util.impl.BagItCacheImpl;
+import de.immerarchiv.util.impl.CycleServiceImpl;
+import de.immerarchiv.util.impl.FileChangesWatcherImpl;
 import de.immerarchiv.util.impl.MD5CacheImpl;
 import de.immerarchiv.util.impl.MD5ServiceImpl;
 import de.immerarchiv.util.impl.NameServiceImpl;
+import de.immerarchiv.util.impl.TimestampServiceImpl;
 import de.immerarchiv.util.interfaces.BagItCache;
+import de.immerarchiv.util.interfaces.CycleService;
+import de.immerarchiv.util.interfaces.FileChangesWatcher;
 import de.immerarchiv.util.interfaces.MD5Cache;
 import de.immerarchiv.util.interfaces.MD5Service;
 import de.immerarchiv.util.interfaces.NameService;
@@ -51,6 +56,8 @@ public class Service {
 	private final static FolderFileComparerService comparerService = new FolderFileComparerServiceImpl();
 	private final static NameService nameService = new NameServiceImpl();
 	private final static BestBagitStrategy bestBagitStrategy = new BestBagitStrategy();
+	private final static CycleService cycleService = new CycleServiceImpl(new TimestampServiceImpl(),15,24 * 60);
+	private static FileChangesWatcher fileChangesWatcher;
 	private static MD5Cache md5cache = null;
 	private static BagItCache bagItCache = null;
 
@@ -67,6 +74,8 @@ public class Service {
 		md5cache = new MD5CacheImpl(new File(working,"md5cache.txt"));
 		bagItCache = new BagItCacheImpl(bagitCache);
 		
+		//FileWatcher
+		fileChangesWatcher = new FileChangesWatcherImpl();
 		
 		File configFile = new File("config.yml");
 		YAMLFactory yf = new YAMLFactory();
@@ -82,7 +91,6 @@ public class Service {
 		
 		WebServer webserver = null;
 		Config config = null;
-		long nextscann = 0;
 		long lastRead = 0;
 
 		ApplicationState.set("jobs-errors",0);
@@ -99,10 +107,27 @@ public class Service {
 
 			if(configFile.lastModified() > lastRead)
 			{
+				logger.info("config changed");
+
 				config = new ObjectMapper(yf).readValue(configFile,Config.class);
 				lastRead = new Date().getTime();
 				ApplicationState.set("config-read",new Date());
-				ApplicationState.set("config-content",config);				
+				ApplicationState.set("config-content",config);	
+				
+				//Trigger next scan
+				cycleService.triggerCycle("ConfigChanged");
+				ApplicationState.set("jobs-nextscann",new Date(cycleService.getNextCycle()));
+				ApplicationState.set("jobs-nextscann-trigger",cycleService.getTrigger());
+
+			}
+			
+			if(fileChangesWatcher.hasNewFiles())
+			{
+				logger.info("new files");
+				cycleService.triggerCycle("NewFiles");
+				ApplicationState.set("jobs-nextscann",new Date(cycleService.getNextCycle()));
+				ApplicationState.set("jobs-nextscann-trigger",cycleService.getTrigger());
+
 			}
 			
 			if(webserver == null)
@@ -141,11 +166,11 @@ public class Service {
 					if((currentJob instanceof RepositoryScanJob)
 							||(currentJob instanceof BagItScanJob))
 					{
-						nextscann = new Date().getTime() + 1000 * 60 * 5;
-						ApplicationState.set("jobs-nextscann",new Date(nextscann));
-						
+						cycleService.triggerCycle("NetworkError");
+						ApplicationState.set("jobs-nextscann",new Date(cycleService.getNextCycle()));
+						ApplicationState.set("jobs-nextscann-trigger",cycleService.getTrigger());
+
 						jobs.clear();
-						logger.error("cancel all jobs and reshedule for {}",new Date(nextscann));
 						
 					}
 				}
@@ -180,8 +205,8 @@ public class Service {
 			}
 			
 			
-			//currentJob == null && jobs.size() == 0 //jede Stunde
-			if(nextscann  < new Date().getTime())
+			//next Scan ??
+			if(cycleService.IsNextCycle())
 			{
 
 				int repoId = 0;
@@ -204,11 +229,15 @@ public class Service {
 					fileIgnoreFilter.addPattern(pattern);
 				}
 				
+				fileChangesWatcher.deleteFolders();
+
 				for(PathConfig pathConfig : config.pathes)
 				{
 					Folder folder = new Folder();
 					folder.setPath(pathConfig.path);
 					folderSystem.addFolder(folder);
+					
+					fileChangesWatcher.addFolder(pathConfig.path);
 				}
 				jobs.add(new FolderScanJob(md5service, nameService, md5cache, folderSystem,fileIgnoreFilter,fileSystemState));
 
@@ -220,8 +249,9 @@ public class Service {
 				jobs.add(new SynchronizeJob(repositoryServices,archiv, folderSystem,fileSystemState));
 				
 				
-				nextscann = new Date().getTime() + 1000 * 60 * 60;
-				ApplicationState.set("jobs-nextscann",new Date(nextscann));
+				cycleService.incrCycle();
+				ApplicationState.set("jobs-nextscann",new Date(cycleService.getNextCycle()));
+				ApplicationState.set("jobs-nextscann-trigger",cycleService.getTrigger());
 				ApplicationState.set("config-content",config);
 				ApplicationState.setFileSystemState(fileSystemState);
 
