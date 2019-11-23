@@ -8,22 +8,16 @@ body {
 }
 
 
-
+@keyframes blink {
+  50% { opacity: 0.0; }
+}
+@-webkit-keyframes blink {
+  50% { opacity: 0.0; }
+}
 
 .blink {
-  animation: blink-animation 3s steps(5, start) infinite;
-  -webkit-animation: blink-animation 3s steps(5, start) infinite;
-}
-
-@keyframes blink-animation {
-  to {
-    visibility: hidden;
-  }
-}
-@-webkit-keyframes blink-animation {
-  to {
-    visibility: hidden;
-  }
+  animation: blink 2s step-start 0s infinite;
+  -webkit-animation: blink 2s step-start 0s infinite;
 }
 
 .single_counter {
@@ -40,21 +34,32 @@ body {
   margin-bottom: 18px;
 }
 
+
+
 #heart {
-  color: #cc3300;
+  color: Tomato;
 }
+
 .alive {
-  color: 	#339900 !important;
+  color: 	#3CB371 !important;
 }
 
 .active {
   background: rgba(128 , 128 , 128 , 0.5) !important;
 }
 
-.warning {
+.active > .fa-play {
+  color: 	#3CB371 !important;
+}
+
+.active > .fa-bomb {
+  color: Tomato;
+}
+
+.active > .fa-exclamation-triangle {
   color: #ffcc00 !important;
 }
 
-.ok {
-  color: 	#339900 !important;
+.active > .fa-check {
+  color: 	#3CB371 !important;
 }

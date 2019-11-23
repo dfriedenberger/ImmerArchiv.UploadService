@@ -2,6 +2,9 @@
 $( document ).ready(function() {
 
 
+    var sourceTableRow   = document.getElementById("table-row-template").innerHTML;
+    var templateTableRow = Handlebars.compile(sourceTableRow);
+
     Date.prototype.human = function() {
       
         var dd = this.getDay();
@@ -23,8 +26,12 @@ $( document ).ready(function() {
                ].join(':');
     };
 
-    function heartbeat(ok)
+    function setHeartBeat(timestamp)
     {
+        var current = new Date().getTime();
+        var diff = current - timestamp;
+        var ok = diff < 1000? true : false;
+
         if(ok) {
             $("#heart").addClass("blink");
             $("#heart").addClass("alive");
@@ -36,85 +43,130 @@ $( document ).ready(function() {
         }
     }
 
-
-
-    function updateView()
+    function setNextCycle(timestamp,trigger)
     {
-        $.getJSON( "api/v1/jobs", function( data ) {
-            var items = [];
+        var current = new Date().getTime();
+
+        // Find the distance between now and the count down date
+        var distance = timestamp - current;
+
+        // Time calculations for days, hours, minutes and seconds
+        var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // Display the result in the element with id="demo"
+        var counter = (days > 0 ? days + "d " : "")
+                + (hours>9 ? '' : '0') + hours + "h "
+                + (minutes>9 ? '' : '0') + minutes + "m "
+                + (seconds>9 ? '' : '0') + seconds+"s"
+
+        // If the count down is finished, write some text
+        if (distance < 0) {
+           counter = "EXPIRED";
+        }
+        $("#counter").text(counter);
+        $("#trigger").text(trigger);
+
+
+    }
+
+    function  setTileCounter(id,value)
+    {
+        var elm = $(id);
+        elm.text(value);
+
+        var counter = elm.closest('.single_counter');
+        if(value > 0)
+        {
+                counter.addClass("active");
+        }
+        else
+        {
+                counter.removeClass("active");
+        }
+        
+    }
+    
+    var linesCache = {}; 
+    const maxLines = 10;
+
+    function  showLines(id,cnt,url)
+    {
+        if(!(id in linesCache)) 
+            linesCache[id] = 0;
+
+        if(linesCache[id] == cnt) return; //Nothing changed
+
+        var skip = 0;
+        var limit = cnt;
+
+        if(cnt > maxLines)
+        {
+            limit = maxLines;
+            skip = cnt - maxLines;
+        }
+
+        $(id).empty();
+
+        $.getJSON( url + "?skip="+skip+"&limit="+limit, function( data ) {
+
+            //debug dump all
             console.log( data );
 
             $.each( data, function( key, val ) {
-
-                var elm = $("#"+key);
-
-                if((key == "heartbeat") || (key == "jobs-nextscann"))
-                {
-                    val = new Date(val).human();
-                }
-
-
-                elm.text(val);
-
-                var counter = elm.closest('.single_counter');
-                if(counter)
-                {
-                    console.log(key+" = "+val);
-
-                    //counter
-                    if(val > 0)
-                    {
-                        counter.addClass("active");
-                    }
-                    else
-                    {
-                        counter.removeClass("active");
-                    }
-                }
-
+               
+                var html    = templateTableRow({line: val});
+                $(id).append(html);
             });
-        
-            //error
-            var error = data['jobs-errors'];
-            if(error > 0)
-            {
-                $("#bomb").addClass("error");
-            }
-            else
-            {
-                $("#bomb").removeClass("error");
-            }
 
-            //files-warnings
-            var warnings = data['files-warning'];
-            if(warnings > 0)
-            {
-                $("#triangle").addClass("warning");
-            }
-            else
-            {
-                $("#triangle").removeClass("warning");
-            }
-            //files-ok
-            var ok = data['files-ok'];
-            if(ok > 0)
-            {
-                $("#check").addClass("ok");
-            }
-            else
-            {
-                $("#check").removeClass("ok");
-            }
+            linesCache[id] = cnt;
 
+        });
+    }
 
-            //heartbeat
-            var hb = data['heartbeat'];
-            var d = new Date().getTime();
-            var diff = d - hb;
-            heartbeat(diff < 1000); 
+    function updateView()
+    {
+        $.getJSON( "api/v1/status", function( data ) {
+            
+            //debug dump all
+            console.log( data );
+
+            //debug dump jobs
+            var jobs = data["jobs"];
+            $.each( jobs, function( key, val ) {
+                console.log("jobs: "+ key +" = "+val);
+            });
+
+            //debug dump files
+            var files = data["files"];
+            $.each( files, function( key, val ) {
+                console.log("files: "+key +" = "+val);
+            });
+
+            setHeartBeat(jobs["heartbeat"]);
+            setNextCycle(jobs["nextScanTime"],jobs["nextScanTrigger"]);
+
+            var errors = jobs["errors"];
+            var uploads = jobs["uploads"];
+            setTileCounter("#jobs-errors",errors);
+            setTileCounter("#jobs-cnt",jobs["jobCount"]);
+
+            setTileCounter("#files-ok",files["files-ok"]);
+            setTileCounter("#files-warning",files["files-warning"]);
+           
+            showLines("#errors",errors,"api/v1/errors");
+            showLines("#uploads",uploads,"api/v1/uploads");
+           
+            /*
+            jobs: currentStep = 0
+            jobs: currentStart = 0
+            jobs: currentName = 
+            */
 
         }).fail(function() { 
-            heartbeat(false); 
+            setHeartBeat(0); 
         })
 
         window.setTimeout(updateView,1000);

@@ -13,9 +13,10 @@ import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import de.frittenburger.web.impl.ApplicationStateImpl;
 import de.frittenburger.web.impl.WebServerImpl;
+import de.frittenburger.web.interfaces.ApplicationState;
 import de.frittenburger.web.interfaces.WebServer;
-import de.immerarchiv.job.impl.ApplicationState;
 import de.immerarchiv.job.impl.ArchivImpl;
 import de.immerarchiv.job.impl.BagItScanJob;
 import de.immerarchiv.job.impl.BestBagitStrategy;
@@ -25,6 +26,7 @@ import de.immerarchiv.job.impl.FolderScanJob;
 import de.immerarchiv.job.impl.FolderSystemImpl;
 import de.immerarchiv.job.impl.RepositoryScanJob;
 import de.immerarchiv.job.impl.SynchronizeJob;
+import de.immerarchiv.job.impl.UploadJob;
 import de.immerarchiv.job.interfaces.Archiv;
 import de.immerarchiv.job.interfaces.FileIgnoreFilter;
 import de.immerarchiv.job.interfaces.FolderFileComparerService;
@@ -57,6 +59,7 @@ public class Service {
 	private final static NameService nameService = new NameServiceImpl();
 	private final static BestBagitStrategy bestBagitStrategy = new BestBagitStrategy();
 	private final static CycleService cycleService = new CycleServiceImpl(new TimestampServiceImpl(),15,24 * 60);
+	private final static ApplicationState applicationState = ApplicationStateImpl.getInstance();
 	private static FileChangesWatcher fileChangesWatcher;
 	private static MD5Cache md5cache = null;
 	private static BagItCache bagItCache = null;
@@ -93,7 +96,6 @@ public class Service {
 		Config config = null;
 		long lastRead = 0;
 
-		ApplicationState.set("jobs-errors",0);
 
 		Job currentJob = null;
         PriorityQueue<Job> jobs = new PriorityQueue<>((j1, j2) -> {
@@ -103,7 +105,7 @@ public class Service {
 		
 		while(true)
 		{
-			ApplicationState.set("heartbeat",new Date());
+			applicationState.heartbeat();
 
 			if(configFile.lastModified() > lastRead)
 			{
@@ -111,23 +113,20 @@ public class Service {
 
 				config = new ObjectMapper(yf).readValue(configFile,Config.class);
 				lastRead = new Date().getTime();
-				ApplicationState.set("config-read",new Date());
-				ApplicationState.set("config-content",config);	
 				
 				//Trigger next scan
 				cycleService.triggerCycle("ConfigChanged");
-				ApplicationState.set("jobs-nextscann",new Date(cycleService.getNextCycle()));
-				ApplicationState.set("jobs-nextscann-trigger",cycleService.getTrigger());
+				applicationState.updateNextScan(cycleService.getNextCycle(),cycleService.getTrigger());
 
 			}
 			
 			if(fileChangesWatcher.hasNewFiles())
 			{
 				logger.info("new files");
+				
+				//Trigger next scan
 				cycleService.triggerCycle("NewFiles");
-				ApplicationState.set("jobs-nextscann",new Date(cycleService.getNextCycle()));
-				ApplicationState.set("jobs-nextscann-trigger",cycleService.getTrigger());
-
+				applicationState.updateNextScan(cycleService.getNextCycle(),cycleService.getTrigger());
 			}
 			
 			if(webserver == null)
@@ -139,8 +138,7 @@ public class Service {
 			if(currentJob != null)
 			{
 				logger.trace("next job {}",currentJob);
-				ApplicationState.incr("jobs-current-step");
-
+				applicationState.getJobState().incrCurrentStep();
 				try
 				{
 					
@@ -155,40 +153,41 @@ public class Service {
 				    	jobs.addAll(nextJobs);
 				    }
 					
+					
+					if(currentJob instanceof UploadJob)
+					{
+						//cnt uploads
+						UploadJob uploadJob = (UploadJob)currentJob;
+						applicationState.addSuccessfulUpload(uploadJob);
+					}
+					
 				} 
 				catch(Exception e)
 				{
 					logger.error("job failed {}",currentJob);
 					logger.error(e);
-					ApplicationState.incr("jobs-errors");
+					
+					applicationState.addError(e,currentJob);
 					
 					//if job is relevant for synchronize, cancel queue and restart in 5 Minutes 
 					if((currentJob instanceof RepositoryScanJob)
 							||(currentJob instanceof BagItScanJob))
 					{
 						cycleService.triggerCycle("NetworkError");
-						ApplicationState.set("jobs-nextscann",new Date(cycleService.getNextCycle()));
-						ApplicationState.set("jobs-nextscann-trigger",cycleService.getTrigger());
-
+						applicationState.updateNextScan(cycleService.getNextCycle(),cycleService.getTrigger());
 						jobs.clear();
 						
 					}
 				}
 				
 				
-			   
 				currentJob = null;
-				
-				
-				
-				
-				
-				
+				applicationState.stopJob();			
 				
 			}
 			
 			//currentJob == null
-			ApplicationState.set("jobs-cnt",jobs.size());
+			applicationState.getJobState().setJobCount(jobs.size());
 			if(!jobs.isEmpty())
 			{
 				logger.info("queued jobs {}",jobs.size());
@@ -197,10 +196,7 @@ public class Service {
 				logger.info("init job {}",currentJob);
 				currentJob.init();
 				
-				ApplicationState.set("jobs-current-start",new Date());
-				ApplicationState.set("jobs-current-step",0);
-				ApplicationState.set("jobs-current-name",currentJob.getClass().getSimpleName());
-
+				applicationState.startJob(currentJob);
 				continue;
 			}
 			
@@ -250,17 +246,10 @@ public class Service {
 				
 				
 				cycleService.incrCycle();
-				ApplicationState.set("jobs-nextscann",new Date(cycleService.getNextCycle()));
-				ApplicationState.set("jobs-nextscann-trigger",cycleService.getTrigger());
-				ApplicationState.set("config-content",config);
-				ApplicationState.setFileSystemState(fileSystemState);
+				applicationState.updateNextScan(cycleService.getNextCycle(),cycleService.getTrigger());
+				applicationState.setNextFileSystemState(fileSystemState);
 
 			}
-			
-			
-			ApplicationState.set("jobs-current-start","-");
-			ApplicationState.set("jobs-current-step",0);
-			ApplicationState.set("jobs-current-name","-");
 			
 			try {
 				Thread.sleep(1000);

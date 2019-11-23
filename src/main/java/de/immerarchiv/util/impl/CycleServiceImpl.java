@@ -35,7 +35,7 @@ public class CycleServiceImpl implements CycleService {
 	
 	@Override
 	public String getTrigger() {
-		return trigger == null? "null":trigger;
+		return trigger == null? "Cycle":trigger;
 	}
 	
 	@Override

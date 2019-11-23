@@ -82,6 +82,10 @@ public class RepositoryService implements MetaDataKeys {
 	public String getId() {
 		return id;
 	}
+	
+	public String getUrl() {
+		return url;
+	}
 
 
 
@@ -527,6 +531,8 @@ public class RepositoryService implements MetaDataKeys {
 		return tree.path(endpoint.checkSum).asText();
 		
 	}
+
+
 
 
 	

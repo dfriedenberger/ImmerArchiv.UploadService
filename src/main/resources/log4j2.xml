@@ -4,15 +4,24 @@
     <Console name="Console">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </Console>
-    <File name="MyFile" fileName="working/log/all.log" immediateFlush="false" append="false">
-       <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-    </File>
+    
+    <RollingFile name="RollingFile" fileName="working/logs/all.log"
+                 filePattern="working/logs/$${date:yyyy-MM}/all-%d{MM-dd-yyyy}-%i.log">
+      <PatternLayout>
+        <Pattern>%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Pattern>
+      </PatternLayout>
+      
+      <Policies>
+        <TimeBasedTriggeringPolicy interval="1"/>
+      </Policies>
+      <DefaultRolloverStrategy max="20" />
+    </RollingFile>
     
   </Appenders>
   <Loggers>
     <Root level="TRACE">
-      <AppenderRef ref="Console"/>
-      <AppenderRef ref="MyFile"/>
+      <AppenderRef ref="Console" level="info"/>
+      <AppenderRef ref="RollingFile"/>
     </Root>
   </Loggers>
 </Configuration>

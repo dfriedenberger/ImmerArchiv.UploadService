@@ -47,6 +47,18 @@ public class UploadJob implements Job {
 
 	}
 
+	public FolderFile getFolderFile() {
+		return file;
+	}
+	
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
+	
+	public BagIt getBagIt() {
+		return bagIt;
+	}
+	
 	@Override
 	public void init() throws Exception {
 	}
@@ -117,5 +129,6 @@ public class UploadJob implements Job {
 	public String toString() {
 		return "UploadJob [bagIt=" + bagIt + ", file=" + file + "]";
 	}
+
 
 }
