@@ -1,25 +1,56 @@
 package de.immerarchiv.job.model;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
-public class FileSystemState extends HashMap<String,List<FileState>> {
+import de.immerarchiv.job.interfaces.FileSystemTree;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class FileSystemState {
 
+
+	private Map<Integer,FileStates> files = new HashMap<>();
+
+	private final FileSystemTree tree;
 	
+	public FileSystemState(FileSystemTree tree)
+	{
+		this.tree = tree;
+	}
 	//Wrapper
 	public void setState(File file, String message) {
-		List<FileState> states = new ArrayList<>();
+		
 		FileState state = new FileState();
 		state.setState(message);
-		states.add(state);		
-		super.put(file.getAbsolutePath(), states);
+		put(file, state);
+		
 	}
+
+	public void put(File file, FileState state) {
+		
+		Integer id = tree.get(file);
+		
+		if(!files.containsKey(id))
+			files.put(id,new FileStates());
+		
+		files.get(id).add(state);
+	}
+
+	public FileSystemTree getTree() {
+		return tree;
+	}
+
+	public FileStates getStates(Integer id) {
+		return files.get(id);
+	}
+
+	public int size() {
+		return files.size();
+	}
+
+
+	
+
+	
 
 }

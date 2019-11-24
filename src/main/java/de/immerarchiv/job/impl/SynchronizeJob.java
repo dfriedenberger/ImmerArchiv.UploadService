@@ -85,14 +85,10 @@ public class SynchronizeJob implements Job  {
 				// check for each File, where file exists 
 				for(FolderFile file : files)
 				{
-					List<FileState> states = new ArrayList<>();
-					fileSystemState.put(file.getFile().getAbsolutePath(),states);
-					
 					
 					for(BagIt bagIt : bagIts)
 					{
 						FileState state = new FileState();
-						states.add(state);
 						state.setBagIt(bagIt);
 						try
 						{
@@ -115,11 +111,13 @@ public class SynchronizeJob implements Job  {
 								{
 									state.setState("duplicate in bagit");
 									logger.warn("UploadJob exists file {} to bagIt {}",file,bagIt);
-									continue;
 								}
-								uploadBagItMap.get(bagIt).add(file);
-								nextJobs.add(new UploadJob(repos.get(0),new NameServiceImpl(),bagIt,file,existingBagIts));
-								state.setState("upload job");
+								else
+								{
+									uploadBagItMap.get(bagIt).add(file);
+									nextJobs.add(new UploadJob(repos.get(0),new NameServiceImpl(),bagIt,file,existingBagIts));
+									state.setState("upload job");
+								}
 							}
 							else
 							{
@@ -136,6 +134,9 @@ public class SynchronizeJob implements Job  {
 							state.setState("other filename");
 							logger.warn("WrongFilenameException {} , file exists with {}",file.getFile(),e.getMessage());
 						}
+						
+						fileSystemState.put(file.getFile(),state);
+
 					}
 					
 					

@@ -5,18 +5,12 @@ import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-import org.apache.commons.codec.Charsets;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import de.immerarchiv.util.impl.BaseCacheImpl;
-import de.immerarchiv.util.impl.FileKeyImpl;
 import de.immerarchiv.util.impl.MD5CacheImpl;
 import de.immerarchiv.util.interfaces.MD5Cache;
 

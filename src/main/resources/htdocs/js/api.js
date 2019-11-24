@@ -126,6 +126,20 @@ $( document ).ready(function() {
         });
     }
 
+    function showFiles(files)
+    {
+        $.getJSON( "api/v1/status", function( data ) {
+            
+            //debug dump all
+            console.log( data );
+
+            $.each( data["tree"], function( key, val ) {
+                console.log(val);
+            });
+            
+        });
+    }
+
     function updateView()
     {
         $.getJSON( "api/v1/status", function( data ) {
@@ -153,8 +167,8 @@ $( document ).ready(function() {
             setTileCounter("#jobs-errors",errors);
             setTileCounter("#jobs-cnt",jobs["jobCount"]);
 
-            setTileCounter("#files-ok",files["files-ok"]);
-            setTileCounter("#files-warning",files["files-warning"]);
+            setTileCounter("#files-ok",files["filesOk"]);
+            setTileCounter("#files-warning",files["filesWarning"]);
            
             showLines("#errors",errors,"api/v1/errors");
             showLines("#uploads",uploads,"api/v1/uploads");
@@ -165,6 +179,7 @@ $( document ).ready(function() {
             jobs: currentName = 
             */
 
+
         }).fail(function() { 
             setHeartBeat(0); 
         })
@@ -173,6 +188,7 @@ $( document ).ready(function() {
     }
     updateView();
 
+    showFiles(0);
    
 
 });

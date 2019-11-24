@@ -1,20 +1,22 @@
 package de.frittenburger.web.impl;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import de.frittenburger.web.interfaces.ApplicationState;
 import de.frittenburger.web.model.JobState;
+import de.immerarchiv.job.impl.FileSystemTreeImpl;
 import de.immerarchiv.job.impl.UploadJob;
+import de.immerarchiv.job.interfaces.FileSystemTree;
 import de.immerarchiv.job.interfaces.Job;
-import de.immerarchiv.job.model.FileState;
+import de.immerarchiv.job.model.FileStateSummary;
+import de.immerarchiv.job.model.FileStates;
 import de.immerarchiv.job.model.FileSystemState;
+import de.immerarchiv.job.model.TreeEntry;
 
 public class ApplicationStateImpl implements ApplicationState {
 
@@ -23,7 +25,7 @@ public class ApplicationStateImpl implements ApplicationState {
 	private List<String> errors = new ArrayList<>();
 	private List<String> uploads = new ArrayList<>();
 
-	private FileSystemState fileSystemState = new FileSystemState();
+	private FileSystemState fileSystemState = new FileSystemState(new FileSystemTreeImpl());
 	
 	
 	
@@ -102,37 +104,37 @@ public class ApplicationStateImpl implements ApplicationState {
 	}
 
 	@Override
-	public Map<String, Object> getFilesState() {
-		
-		Map<String, Object> files = new HashMap<>();
-		files.put("files-warning", 0L);
-		files.put("files-ok", 0L);
-
-		
-		for(Entry<String, List<FileState>> e : fileSystemState.entrySet())
-		{
-			String state = null;
-			for(FileState s : e.getValue())
-			{
-				switch(s.getState())
-				{
-				case "exists":
-					if(state == null)
-						state = "files-ok";
-					else
-						state = "files-warning";
-				}
+	public FileStateSummary getFilesState(int id) {
 				
-			}	
-			if(state == null)
-				state = "files-warning";
+		FileSystemTree tree = fileSystemState.getTree();
+		
+		FileStateSummary summary = new FileStateSummary();
+		List<Integer> fileIdList = tree.resolveFiles(id);
+		for(Integer fid : fileIdList)
+		{
+			FileStates states = fileSystemState.getStates(fid);
+			if(states.hasWarning())
+				summary.incrFilesWarning();
 			
-			long cnt = ((Long)files.get(state)).longValue();
-			cnt++;
-			files.put(state,cnt);
+			if(states.isSynchronized())
+				summary.incrFilesOk();
 		}
 		
-		return files;
+		
+		
+		return summary;		
+
+	}
+	
+	
+
+	@Override
+	public List<TreeEntry> getFileTree(int id) {
+		
+		FileSystemTree tree = fileSystemState.getTree();
+		List<TreeEntry> childIdList = tree.resolveChilds(id);
+		return childIdList;
+		
 	}
 	
 	private static ApplicationState applicationState = new ApplicationStateImpl();
@@ -140,6 +142,8 @@ public class ApplicationStateImpl implements ApplicationState {
 	{
 		return applicationState;
 	}
+
+	
 
 	
 

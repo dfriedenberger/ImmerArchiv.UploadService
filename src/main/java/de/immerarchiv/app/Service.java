@@ -21,6 +21,7 @@ import de.immerarchiv.job.impl.ArchivImpl;
 import de.immerarchiv.job.impl.BagItScanJob;
 import de.immerarchiv.job.impl.BestBagitStrategy;
 import de.immerarchiv.job.impl.FileIgnoreFilterImpl;
+import de.immerarchiv.job.impl.FileSystemTreeImpl;
 import de.immerarchiv.job.impl.FolderFileComparerServiceImpl;
 import de.immerarchiv.job.impl.FolderScanJob;
 import de.immerarchiv.job.impl.FolderSystemImpl;
@@ -217,7 +218,7 @@ public class Service {
 				
 				Archiv archiv = new ArchivImpl(repositories, comparerService,nameService,bestBagitStrategy);
 				FolderSystem folderSystem = new FolderSystemImpl();
-				FileSystemState fileSystemState = new FileSystemState();
+				FileSystemState fileSystemState = new FileSystemState(new FileSystemTreeImpl());
 				FileIgnoreFilter fileIgnoreFilter = new FileIgnoreFilterImpl();
 				
 				for(String pattern : config.ignore)

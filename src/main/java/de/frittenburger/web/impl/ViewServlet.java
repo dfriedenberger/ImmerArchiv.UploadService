@@ -45,7 +45,24 @@ public class ViewServlet extends HttpServlet {
 			Map<String,Object> status = new HashMap<>();
 			
 			status.put("jobs", applicationState.getJobState());
-			status.put("files", applicationState.getFilesState());
+			status.put("files", applicationState.getFilesState(0));
+
+			ObjectMapper mapper = new ObjectMapper();
+			response.setStatus(HttpServletResponse.SC_OK);
+			response.setContentType("application/json");			
+			response.getWriter().print(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(status));
+			return;
+		}
+		
+		if (pathInfo.equals("/files")) {
+			
+			int id = 0;
+			String idParam = request.getParameter("id");
+			if(idParam != null)
+				id = Integer.parseInt(idParam);
+			Map<String,Object> status = new HashMap<>();
+			
+			status.put("tree", applicationState.getFileTree(id));
 
 			ObjectMapper mapper = new ObjectMapper();
 			response.setStatus(HttpServletResponse.SC_OK);

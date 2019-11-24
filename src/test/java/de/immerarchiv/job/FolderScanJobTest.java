@@ -33,6 +33,8 @@ public class FolderScanJobTest {
 	@Mock 
 	NameService nameService;
 
+	@Mock 
+	FileSystemState fileSystemState;
 	@Before
 	public void init() {
 		MockitoAnnotations.initMocks(this);
@@ -61,7 +63,7 @@ public class FolderScanJobTest {
 		    }
 		  });
 		
-		Job job = new FolderScanJob(null, nameService, null, folderSystem,new FileIgnoreFilterImpl(),new FileSystemState());
+		Job job = new FolderScanJob(null, nameService, null, folderSystem,new FileIgnoreFilterImpl(),fileSystemState);
 		
 		job.init();
 		while(job.next())
@@ -94,7 +96,7 @@ public class FolderScanJobTest {
 		when(folderSystem.getFolders()).thenReturn(folders);
 		when(folderSystem.selectFiles(folder)).thenReturn(files1);
 
-		Job job = new FolderScanJob(null, nameService, null, folderSystem,null,new FileSystemState());
+		Job job = new FolderScanJob(null, nameService, null, folderSystem,null,fileSystemState);
 
 		assertEquals(1,job.getNext().size());
 	}

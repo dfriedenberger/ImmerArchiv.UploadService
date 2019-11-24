@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 
 import de.immerarchiv.job.impl.SynchronizeJob;
 import de.immerarchiv.job.interfaces.Archiv;
+import de.immerarchiv.job.interfaces.FileSystemTree;
 import de.immerarchiv.job.interfaces.FolderSystem;
 import de.immerarchiv.job.interfaces.Job;
 import de.immerarchiv.job.model.BagIt;
@@ -27,6 +28,9 @@ public class SynchronizeJobTest {
 	@Mock
 	FolderSystem folderSystem;
 
+	@Mock
+	FileSystemTree fileSystemTree;
+	
 	@Mock
 	Archiv archiv;
 
@@ -104,9 +108,10 @@ public class SynchronizeJobTest {
 		when(archiv.fileExists(bagIt2, file2)).thenReturn(false);
 
 		
-		
-		
-		FileSystemState fileSystemState = new FileSystemState();
+		when(fileSystemTree.get(new File("pathtofile/name1.txt"))).thenReturn(123);
+		when(fileSystemTree.get(new File("pathtofile/name2.txt"))).thenReturn(678);
+		FileSystemState fileSystemState = new FileSystemState(fileSystemTree);
+
 		Job job = new SynchronizeJob(repositoryServices,archiv,folderSystem,fileSystemState);
 		
 		
@@ -191,7 +196,10 @@ public class SynchronizeJobTest {
 		
 		
 		
-		FileSystemState fileSystemState = new FileSystemState();
+		when(fileSystemTree.get(new File("pathtofile/name1.txt"))).thenReturn(123);
+		when(fileSystemTree.get(new File("pathtofile2/name1.txt"))).thenReturn(678);
+		FileSystemState fileSystemState = new FileSystemState(fileSystemTree);
+
 		Job job = new SynchronizeJob(repositoryServices,archiv,folderSystem,fileSystemState);
 		
 		
