@@ -5,11 +5,18 @@ import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import org.apache.commons.codec.Charsets;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import de.immerarchiv.util.impl.BaseCacheImpl;
+import de.immerarchiv.util.impl.FileKeyImpl;
 import de.immerarchiv.util.impl.MD5CacheImpl;
 import de.immerarchiv.util.interfaces.MD5Cache;
 
@@ -61,12 +68,14 @@ public class MD5CacheImplTest {
 		
 	}
 	
-	//private static int CNT = 45590; realistic scenario
+	//private static int CNT = 45590; realistic scenario  1.5 Minuten
 	private static int CNT = 1000;
 	
 	@Test
 	public void testBigFile() throws IOException {
 		
+		System.out.println("Start "+new Date());
+
 		File cachefile = folder.newFile();
 		MD5Cache cache = new MD5CacheImpl(cachefile);
 		
@@ -80,10 +89,15 @@ public class MD5CacheImplTest {
 			
 			cache.put(file, "cksum"+i);
 		}
-		System.out.println("Start load");
+		System.out.println("Start load "+new Date());
 		cache.load();
+		System.out.println("Stop load "+new Date());
+
 
 		
 	}
+	
+	
 
+	
 }

@@ -39,9 +39,9 @@ public class KeyImpl {
 			throw new IllegalArgumentException();
 	}
 	
-	public boolean samePrimary(KeyImpl key)
+	public String getPrimary()
 	{
-		return primary.equals(key.primary);
+		return primary;
 	}
 	
 	@Override
