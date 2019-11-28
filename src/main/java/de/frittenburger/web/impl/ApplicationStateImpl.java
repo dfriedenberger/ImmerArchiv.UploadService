@@ -1,6 +1,5 @@
 package de.frittenburger.web.impl;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
