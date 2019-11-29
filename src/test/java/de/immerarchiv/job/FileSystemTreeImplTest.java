@@ -37,17 +37,27 @@ public class FileSystemTreeImplTest {
 		assertEquals(0,tree.resolveIds(0).size());
 		assertEquals(0,tree.resolveChilds(0).size());
 	}
+	
+
 	@Test
 	public void testResolveFiles() {
 		
 		FileSystemTree tree = new FileSystemTreeImpl();
 		
-		
-		assertEquals(4,tree.get(mockFile(new File("D:/pfad1/pfad2/file.txt"),false)).intValue());
-		assertEquals(5,tree.get(mockFile(new File("D:/pfad1/pfad2/file2.txt"),false)).intValue());
-		assertEquals(7,tree.get(mockFile(new File("D:/pfadX/file2.txt"),false)).intValue());
-		assertEquals(8,tree.get(mockFile(new File("D:/pfadY"),true)).intValue());
-
+		if(System.getProperty("os.name").startsWith("Windows"))
+		{
+			assertEquals(4,tree.get(mockFile(new File("D:/pfad1/pfad2/file.txt"),false)).intValue());
+			assertEquals(5,tree.get(mockFile(new File("D:/pfad1/pfad2/file2.txt"),false)).intValue());
+			assertEquals(7,tree.get(mockFile(new File("D:/pfadX/file2.txt"),false)).intValue());
+			assertEquals(8,tree.get(mockFile(new File("D:/pfadY"),true)).intValue());
+		}
+		else
+		{
+			assertEquals(4,tree.get(mockFile(new File("/tmp/pfad1/pfad2/file.txt"),false)).intValue());
+			assertEquals(5,tree.get(mockFile(new File("/tmp/pfad1/pfad2/file2.txt"),false)).intValue());
+			assertEquals(7,tree.get(mockFile(new File("/tmp/pfadX/file2.txt"),false)).intValue());
+			assertEquals(8,tree.get(mockFile(new File("/tmp/pfadY"),true)).intValue());
+		}
 		
 		assertEquals(8,tree.resolveIds(0).size());
 	
