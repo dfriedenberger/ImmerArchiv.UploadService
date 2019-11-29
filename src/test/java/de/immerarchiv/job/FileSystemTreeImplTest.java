@@ -49,16 +49,15 @@ public class FileSystemTreeImplTest {
 		assertEquals(8,tree.get(mockFile(new File("D:/pfadY"),true)).intValue());
 
 		
-		assertEquals(3,tree.resolveIds(0).size());
-		assertTrue(tree.resolveIds(0).contains(4));
-		assertTrue(tree.resolveIds(0).contains(5));
-		assertTrue(tree.resolveIds(0).contains(7));
+		assertEquals(8,tree.resolveIds(0).size());
+	
 		
 		assertEquals(2,tree.resolveIds(3).size());
 		assertTrue(tree.resolveIds(3).contains(4));
 		assertTrue(tree.resolveIds(3).contains(5));
 
-		assertEquals(2,tree.resolveIds(2).size());
+		assertEquals(3,tree.resolveIds(2).size());
+		assertTrue(tree.resolveIds(3).contains(4));
 		assertTrue(tree.resolveIds(2).contains(4));
 		assertTrue(tree.resolveIds(2).contains(5));
 
