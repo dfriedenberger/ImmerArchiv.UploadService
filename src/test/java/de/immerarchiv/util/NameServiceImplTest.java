@@ -30,7 +30,7 @@ public class NameServiceImplTest {
 		NameService service = new NameServiceImpl();
 		
 		Folder folder = new Folder();
-		folder.setPath("Stuff\\Bilder\\012_Hamburg");
+		folder.setPath("Stuff/Bilder/012_Hamburg");
 		assertEquals("Bilder/012_Hamburg", service.createDescription(folder));
 		
 	}
@@ -40,7 +40,7 @@ public class NameServiceImplTest {
 		
 		NameService service = new NameServiceImpl();
 		
-		assertEquals("Hello_W_rld.txt", service.createSafeName(new File("abc/Hello Wörld.txt")));
+		assertEquals("Hello_W_rld.txt", service.createSafeName(new File("abc/Hello Wï¿½rld.txt")));
 		
 	}
 	
