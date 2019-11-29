@@ -53,10 +53,10 @@ public class FileSystemTreeImplTest {
 		}
 		else
 		{
-			assertEquals(4,tree.get(mockFile(new File("/tmp/pfad1/pfad2/file.txt"),false)).intValue());
-			assertEquals(5,tree.get(mockFile(new File("/tmp/pfad1/pfad2/file2.txt"),false)).intValue());
-			assertEquals(7,tree.get(mockFile(new File("/tmp/pfadX/file2.txt"),false)).intValue());
-			assertEquals(8,tree.get(mockFile(new File("/tmp/pfadY"),true)).intValue());
+			assertEquals(4,tree.get(mockFile(new File("/pfad1/pfad2/file.txt"),false)).intValue());
+			assertEquals(5,tree.get(mockFile(new File("/pfad1/pfad2/file2.txt"),false)).intValue());
+			assertEquals(7,tree.get(mockFile(new File("/pfadX/file2.txt"),false)).intValue());
+			assertEquals(8,tree.get(mockFile(new File("/pfadY"),true)).intValue());
 		}
 		
 		assertEquals(8,tree.resolveIds(0).size());
@@ -80,18 +80,35 @@ public class FileSystemTreeImplTest {
 		
 		FileSystemTree tree = new FileSystemTreeImpl();
 		
-		
-		assertEquals("D:\\",new File("D:/Stuff").getParentFile().getAbsolutePath());
-		assertEquals("",new File("D:/Stuff").getParentFile().getName());
+        
+        if(System.getProperty("os.name").startsWith("Windows"))
+		{
+            assertEquals("D:\\",new File("D:/Stuff").getParentFile().getAbsolutePath());
+            assertEquals("",new File("D:/Stuff").getParentFile().getName());
 
-		assertEquals(4,tree.get(mockFile(new File("D:/pfad1/pfad2/file.txt"),false)).intValue());
-		assertEquals(5,tree.get(mockFile(new File("D:/pfad1/pfad2/file2.txt"),false)).intValue());
-		assertEquals(7,tree.get(mockFile(new File("D:/pfadX/file2.txt"),false)).intValue());
-		assertEquals(8,tree.get(mockFile(new File("D:/pfadY"),true)).intValue());
+            assertEquals(4,tree.get(mockFile(new File("D:/pfad1/pfad2/file.txt"),false)).intValue());
+            assertEquals(5,tree.get(mockFile(new File("D:/pfad1/pfad2/file2.txt"),false)).intValue());
+            assertEquals(7,tree.get(mockFile(new File("D:/pfadX/file2.txt"),false)).intValue());
+            assertEquals(8,tree.get(mockFile(new File("D:/pfadY"),true)).intValue());
 
+            assertEquals(1,tree.resolveChilds(0).size());
+		    assertEquals("D:",tree.resolveChilds(0).get(0).getName());
+        }
+        else
+        {
+            assertEquals("/",new File("/Stuff").getParentFile().getAbsolutePath());
+            assertEquals("",new File("/Stuff").getParentFile().getName());
+
+            assertEquals(4,tree.get(mockFile(new File("/pfad1/pfad2/file.txt"),false)).intValue());
+            assertEquals(5,tree.get(mockFile(new File("/pfad1/pfad2/file2.txt"),false)).intValue());
+            assertEquals(7,tree.get(mockFile(new File("/pfadX/file2.txt"),false)).intValue());
+            assertEquals(8,tree.get(mockFile(new File("/pfadY"),true)).intValue());
+
+            assertEquals(1,tree.resolveChilds(0).size());
+		    assertEquals("",tree.resolveChilds(0).get(0).getName());
+        }
 		
-		assertEquals(1,tree.resolveChilds(0).size());
-		assertEquals("D:",tree.resolveChilds(0).get(0).getName());
+	
 		
 		List<TreeEntry> r = tree.resolveChilds(1);
 		assertEquals(3,r.size());
