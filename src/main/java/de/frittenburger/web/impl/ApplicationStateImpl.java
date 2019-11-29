@@ -108,10 +108,13 @@ public class ApplicationStateImpl implements ApplicationState {
 		FileSystemTree tree = fileSystemState.getTree();
 		
 		FileStateSummary summary = new FileStateSummary();
-		List<Integer> fileIdList = tree.resolveFiles(id);
+		List<Integer> fileIdList = tree.resolveIds(id);
 		for(Integer fid : fileIdList)
 		{
 			FileStates states = fileSystemState.getStates(fid);
+			
+			if(states == null) continue;
+			
 			if(states.hasWarning())
 				summary.incrFilesWarning();
 			
@@ -132,6 +135,22 @@ public class ApplicationStateImpl implements ApplicationState {
 		
 		FileSystemTree tree = fileSystemState.getTree();
 		List<TreeEntry> childIdList = tree.resolveChilds(id);
+		
+		//Mop anreichern
+		for(TreeEntry e : childIdList)
+		{
+			if(e.isDirectory())
+			{
+				FileStateSummary summary = getFilesState(e.getId());
+				e.addAdditionalField("summary",summary);
+			}
+			
+			FileStates states = fileSystemState.getStates(e.getId());
+			if(states != null)
+				e.addAdditionalField("state",states);
+			
+		}
+		
 		return childIdList;
 		
 	}

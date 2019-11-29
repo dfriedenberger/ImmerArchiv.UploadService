@@ -10,7 +10,7 @@ public interface FileSystemTree {
 
 	Integer get(File file);
 
-	List<Integer> resolveFiles(Integer id);
+	List<Integer> resolveIds(Integer id);
 
 	List<TreeEntry> resolveChilds(Integer id);
 

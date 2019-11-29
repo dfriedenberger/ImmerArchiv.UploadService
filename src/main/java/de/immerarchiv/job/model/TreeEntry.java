@@ -1,10 +1,14 @@
 package de.immerarchiv.job.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class TreeEntry {
 	
 	private String name;
 	private int id;
 	private boolean directory;
+	private Map<String,Object> properties = new HashMap<>();
 	
 	public String getName() {
 		return name;
@@ -25,6 +29,17 @@ public class TreeEntry {
 	
 	public void setId(int id) {
 		this.id = id;
+	}
+	
+	
+	public Map<String, Object> getProperties() {
+		return properties;
+	}
+	public void setProperties(Map<String, Object> properties) {
+		this.properties = properties;
+	}
+	public void addAdditionalField(String key, Object value) {
+		this.properties.put(key, value);
 	}
 	
 	

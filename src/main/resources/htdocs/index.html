@@ -92,6 +92,32 @@
       </div>
     </div>
 
+    <script id="tree-directory-template" type="text/x-handlebars-template">
+      <div class="folder" id="{{id}}">
+        <span><i class="fa fa-folder"></i> {{name}}</span>
+            {{#each warnings}}
+            <span class="badge badge-warning">{{this}}</span>
+            {{/each}}
+            {{#if warning}}
+            <span class="badge badge-warning">{{warning}}</span>
+            {{/if}}
+      </div>
+    </script>
+
+
+    <script id="tree-file-template" type="text/x-handlebars-template">
+      <div id="{{id}}">
+        <span><i class="fa fa-file"></i> {{name}}</span>
+        {{#if synchronized}}
+        <span><i class="fa fa-sync"></i></span>
+        {{/if}}
+        {{#each warnings}}
+        <span class="badge badge-warning">{{this}}</span>
+        {{/each}}
+      </div>
+    </script>
+
+
     <h6 class="mt-5">Files</h6>
     <div class="row">
       <div id="files" class="col">

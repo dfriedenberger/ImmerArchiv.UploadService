@@ -78,7 +78,7 @@ public class FileSystemTreeImpl implements FileSystemTree {
 	}
 
 	@Override
-	public List<Integer> resolveFiles(Integer id) {
+	public List<Integer> resolveIds(Integer id) {
 
 		
 		List<Integer> fileEntries = new ArrayList<>();
@@ -87,7 +87,9 @@ public class FileSystemTreeImpl implements FileSystemTree {
 		
 		for(Integer folderId : folders.get(id))
 		{
-			fileEntries.addAll(resolveFiles(folderId));
+			fileEntries.add(folderId);
+
+			fileEntries.addAll(resolveIds(folderId));
 		}
 		
 		return fileEntries;

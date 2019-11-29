@@ -5,6 +5,12 @@ $( document ).ready(function() {
     var sourceTableRow   = document.getElementById("table-row-template").innerHTML;
     var templateTableRow = Handlebars.compile(sourceTableRow);
 
+    var sourceTreeDirectory   = document.getElementById("tree-directory-template").innerHTML;
+    var templateTreeDirectory = Handlebars.compile(sourceTreeDirectory);
+
+    var sourceTreeFile   = document.getElementById("tree-file-template").innerHTML;
+    var templateTreeFile = Handlebars.compile(sourceTreeFile);
+
     Date.prototype.human = function() {
       
         var dd = this.getDay();
@@ -126,14 +132,78 @@ $( document ).ready(function() {
         });
     }
 
-    function showFiles(files)
+    function showFiles(parentId,fileId)
     {
-        $.getJSON( "api/v1/status", function( data ) {
+        $.getJSON( "api/v1/files?id="+fileId, function( data ) {
             
             //debug dump all
             console.log( data );
 
+
+
+
             $.each( data["tree"], function( key, val ) {
+
+                var isDirectory = val["directory"];
+                var name = val["name"];
+                var fileId = val["id"];
+                var properties = val["properties"];
+
+                var divId = "file-"+fileId;
+
+                
+                $("#"+divId).remove();
+
+                if(isDirectory)
+                {
+                    var summary = properties["summary"];
+                    var filesWarning = summary["filesWarning"];
+                    var filesOk = summary["filesOk"];
+                    
+                    var warnings = [];
+                    var state = properties["state"];
+                    if(state)
+                    {  
+                        warnings = state["warnings"];
+                    }
+
+                    var html    = templateTreeDirectory({id : divId, name: name, warning: filesWarning, ok: filesOk, warnings: warnings});
+                    var dir = $(html);
+                    dir.children("span").click(function(ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+
+                        var icon = $("#"+divId).children("span").children("i.fa");
+
+                        if(icon.hasClass("fa-folder"))
+                        {
+                            showFiles("#"+divId,fileId);
+                            icon.removeClass("fa-folder");
+                            icon.addClass("fa-folder-open");
+                        }
+                        else
+                        {
+                            $("#"+divId).find("div").remove();
+                            icon.removeClass("fa-folder-open");
+                            icon.addClass("fa-folder");
+                        }
+                        
+
+
+                    });
+                    $(parentId).append(dir);
+                }
+                else
+                {
+                    //File
+                    var state = properties["state"];
+                    var synchronized = state["synchronized"];
+                    var warnings = state["warnings"];
+                    var html    = templateTreeFile({id : divId, name: name, synchronized: synchronized , warnings: warnings });
+                    $(parentId).append(html);
+
+                }
+
                 console.log(val);
             });
             
@@ -188,7 +258,7 @@ $( document ).ready(function() {
     }
     updateView();
 
-    showFiles(0);
+    showFiles($("#files"),0);
    
 
 });

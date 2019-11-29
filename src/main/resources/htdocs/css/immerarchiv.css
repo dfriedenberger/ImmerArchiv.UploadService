@@ -63,3 +63,8 @@ body {
 .active > .fa-check {
   color: 	#3CB371 !important;
 }
+
+.folder > div {
+  margin-left: 20px;
+}
+

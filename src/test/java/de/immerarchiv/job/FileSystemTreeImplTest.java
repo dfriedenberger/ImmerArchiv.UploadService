@@ -34,7 +34,7 @@ public class FileSystemTreeImplTest {
 	@Test
 	public void testEmpty() {
 		FileSystemTree tree = new FileSystemTreeImpl();
-		assertEquals(0,tree.resolveFiles(0).size());
+		assertEquals(0,tree.resolveIds(0).size());
 		assertEquals(0,tree.resolveChilds(0).size());
 	}
 	@Test
@@ -49,20 +49,20 @@ public class FileSystemTreeImplTest {
 		assertEquals(8,tree.get(mockFile(new File("D:/pfadY"),true)).intValue());
 
 		
-		assertEquals(3,tree.resolveFiles(0).size());
-		assertTrue(tree.resolveFiles(0).contains(4));
-		assertTrue(tree.resolveFiles(0).contains(5));
-		assertTrue(tree.resolveFiles(0).contains(7));
+		assertEquals(3,tree.resolveIds(0).size());
+		assertTrue(tree.resolveIds(0).contains(4));
+		assertTrue(tree.resolveIds(0).contains(5));
+		assertTrue(tree.resolveIds(0).contains(7));
 		
-		assertEquals(2,tree.resolveFiles(3).size());
-		assertTrue(tree.resolveFiles(3).contains(4));
-		assertTrue(tree.resolveFiles(3).contains(5));
+		assertEquals(2,tree.resolveIds(3).size());
+		assertTrue(tree.resolveIds(3).contains(4));
+		assertTrue(tree.resolveIds(3).contains(5));
 
-		assertEquals(2,tree.resolveFiles(2).size());
-		assertTrue(tree.resolveFiles(2).contains(4));
-		assertTrue(tree.resolveFiles(2).contains(5));
+		assertEquals(2,tree.resolveIds(2).size());
+		assertTrue(tree.resolveIds(2).contains(4));
+		assertTrue(tree.resolveIds(2).contains(5));
 
-		assertEquals(0,tree.resolveFiles(8).size());
+		assertEquals(0,tree.resolveIds(8).size());
 
 	}
 

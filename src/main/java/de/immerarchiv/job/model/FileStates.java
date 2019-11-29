@@ -1,7 +1,9 @@
 package de.immerarchiv.job.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FileStates {
 
@@ -10,8 +12,10 @@ public class FileStates {
 	private boolean warning = false;
 	private boolean synched = true;
 
+	private Set<String> warnings = new HashSet<>();
+
 	public void add(FileState state) {
-		
+				
 		switch(state.getState())
 		{
 		case "exists":
@@ -21,6 +25,7 @@ public class FileStates {
 			break;
 		default:
 			synched = false;
+			warnings .add(state.getState());
 			warning = true;
 			break;
 		}
@@ -34,6 +39,10 @@ public class FileStates {
 	
 	public boolean isSynchronized() {
 		return synched;
+	}
+
+	public Set<String> getWarnings() {
+		return warnings;
 	}
 	
 	
