@@ -1,0 +1,14 @@
+---
+#Port nummber for UserInterface use Browser on localhost:8888
+server:
+  port: 8888 
+repositories:
+- url: "http://repository1.domain.org:8881"
+  name: "username"
+  token: "--token--"
+- url: "http://repository2.domain.org:8881"
+  name: "username"
+  token: "--token--"
+pathes:
+- path: "C:/Stuff/Archiv1"
+ignore: ["Thumbs.db"]

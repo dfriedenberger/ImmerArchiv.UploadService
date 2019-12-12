@@ -32,7 +32,6 @@ public class Config {
 		PathConfig path = new PathConfig();
 		config.pathes.add(path);
 		path.path = "D:/Stuff";
-		path.pattern = "*.pdf,*.ico";
 		
 		//global pattern
 		config.ignore = new ArrayList<String>();
