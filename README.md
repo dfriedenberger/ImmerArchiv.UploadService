@@ -19,13 +19,13 @@ Is a servce for uploading files to repositories for long-term preservation. For 
 ---
 #Port nummber for UserInterface use Browser on localhost:8888
 server:
-  port: 8888    79031160-2d6f-4118-a0b2-e898a0ab0071
+  port: 8888 
 repositories:
 - url: "http://repository.domain.org:8881"
   name: "username"
-  token: "9ead2ea5-0703-47f4-b163-6528e701ad40"
+  token: "--token--"
 pathes:
-- path: "D:/Stuff/Archiv1"
+- path: "C:/Stuff/Archiv1"
 ignore: ["Thumbs.db"]
 ```
 ### Start service
