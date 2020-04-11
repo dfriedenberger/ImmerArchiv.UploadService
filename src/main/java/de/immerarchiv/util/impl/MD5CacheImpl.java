@@ -65,14 +65,22 @@ public class MD5CacheImpl extends BaseCacheImpl<FileKeyImpl, String> implements 
 		if(cachefile.exists())
 		{
 			List<String> liness = Files.readAllLines(cachefile.toPath(), Charsets.UTF_8);
-			System.out.println(liness.size());
+			logger.info("Read {} Entries in MD5Cache",liness.size());
 			for(String line : liness)
 			{
-				  int i = line.indexOf("=");
-				     lines++;
-				     String md5 = line.substring(0,i).trim();
+				 int i = line.indexOf("=");
+			     lines++;
+			     String md5 = line.substring(0,i).trim();
+			     try
+			     {
 				     FileKeyImpl key = FileKeyImpl.parse(line.substring(i+1).trim());
 				     super.put(key, md5);
+			     }
+			     catch(Exception e)
+			     {
+			    	 logger.error(e);
+			    	 logger.error("Line contains errors: {}",line);
+			     }
 			}		
 	     }
 		loaded = true;

@@ -5,6 +5,8 @@ import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 
 import org.junit.Rule;
@@ -91,7 +93,16 @@ public class MD5CacheImplTest {
 		
 	}
 	
-	
+	@Test
+	public void testIssue22() throws IOException {
+		
+		File file = new File(this.getClass().getClassLoader().getResource("working/md5cache.txt").getFile());
+		File cachefile = folder.newFile();
 
-	
+		Files.copy(file.toPath(), cachefile.toPath(),StandardCopyOption.REPLACE_EXISTING);
+		
+		MD5Cache cache = new MD5CacheImpl(cachefile);
+		cache.load();
+
+	}
 }
